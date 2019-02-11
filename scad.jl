@@ -18,4 +18,5 @@ function scad(x::Vector, lam::Real, nu::Real, gam::Real)
     else
         z = x
     end
+    return z
 end

@@ -5,7 +5,7 @@
 #### cubic bsplines without intercept
 using LinearAlgebra
 
-function Bsplinestd(knots::Vector,g::integer, boundary::Vector)
+function Bsplinestd(knots::Vector, g::Int, boundary::Vector)
     nknots = length(knots)
     L = (boundary[2] - boundary[1])/(g + 1) # interval length
     # grid points
@@ -44,4 +44,6 @@ function Bsplinestd(knots::Vector,g::integer, boundary::Vector)
     Rm = qr(Bm0).R
     Tm = sqrt(g/L) * pinv(Rm)
     Bm = Bm0 * Tm
-return Bm
+
+    return Bm
+end
