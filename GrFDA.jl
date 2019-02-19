@@ -37,3 +37,11 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector,
             Dmat[i0,j] = -1
         end
     end
+
+    ## initial values
+    deltam = zeros(p, npair)
+    deltamold = zeros(p, npair)
+    betadiff = zeros(p, npair)
+
+    vm = zeros(p, npair)
+    deltamold = transpose(Dmat * betam0)
