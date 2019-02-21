@@ -10,6 +10,14 @@ tm = data.time
 y = data.obs
 knots = collect(range(0,length = 7, stop = 1))[2:6]
 boundary = [0,1]
+nu = 1
+gam = 3
+g = 20
+maxiter = 1000
+tolabs = 1e-4
+tolrel = 1e-2
+betam0 
+
 
 function GrFDA(;indexy::Vector, tm::Vector, y::Vector,
     betam0::Array, lam = 0.5, nu = 1, gam = 3,
@@ -22,16 +30,16 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector,
     ntotal = length(y)
     p = size(Bmt, 2)
     uindex = unique(indexy) # unique id for each obs
-    nobs = length(uindex)
-    np = nobs * p
+    n = length(uindex) # number of unique ids
+    np = n * p
 
-    Ip = diagm(0 => ones(ncb))
-    npair = nobs * (nobs - 1)/2
+    Ip = diagm(0 => ones(p))
+    npair = n * (n - 1)/2
 
-    Dmat = zeros(convert(Int,npair), nobs) # difference matrix
+    Dmat = zeros(convert(Int,npair), n) # difference matrix
     i0 = 0
-    for i = 1:(nobs - 1)
-        for j = (i+1):nobs
+    for i = 1:(n - 1)
+        for j = (i+1):n
             global i0 += 1
             Dmat[i0,i] = 1
             Dmat[i0,j] = -1
