@@ -12,3 +12,4 @@ knots = collect(range(0,length = 9,stop = 1))[2:8]
 
 data = simdat(sig2, lamj, m = m, ncl = ncl)
 Bm = Bsplinestd(data.time, knots, g = 20,boundary = [0,1])
+CSV.write("data.csv",data)
