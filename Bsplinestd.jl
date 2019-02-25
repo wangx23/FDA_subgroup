@@ -6,7 +6,7 @@
 #### cubic bsplines without intercept
 using LinearAlgebra
 
-function Bsplinestd(x::Vector, knots::Vector; g::Int = 20, boundary::Vector = [0,1])
+function Bsplinestd(x::Vector, knots::Vector; g::Int = 1000, boundary::Vector = [0,1])
     nknots = length(knots)
     L = (boundary[2] - boundary[1])/(g + 1) # interval length
     nx = length(x)
@@ -44,6 +44,7 @@ function Bsplinestd(x::Vector, knots::Vector; g::Int = 20, boundary::Vector = [0
     end
 
     Bm0 = Bm0[:,2:(nknots+4)] # remove intercept
+    Bm0[gridx.==boundary[2],end] .= 1
     Rm = qr(Bm0).R
     Tm = sqrt(g/L) * pinv(Rm)
 
@@ -71,7 +72,7 @@ function Bsplinestd(x::Vector, knots::Vector; g::Int = 20, boundary::Vector = [0
     end
 
     Bmx = Bmx[:,2:(nknots+4)] # remove intercept
-
+    Bmx[x.==boundary[2],end] .= 1
 
     Bm = Bmx * Tm
 

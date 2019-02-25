@@ -31,7 +31,7 @@ end
 function simdat(sig2::Number, lamj::Vector;
     m::Int = 20, ncl::Int = 50, seed::Int = 2228)
     Random.seed!(seed)
-    tvec = collect(range(0, length = m, stop = 1))
+    tvec = collect(range(0, length = m + 2, stop = 1))[2:end-1]
 
     ntotal = 2 * ncl * m
 
