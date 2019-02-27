@@ -102,8 +102,14 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
     Vhat = zeros(P,P,n)  # a (P,P,n) array
+    M2hat = zeros(P,P,n)
+    Byr = zeros(np)
+    trvalue = zeros(n)
+
 
     betam = betam0
+
+    Xinv = inverseb(indexy,Bmt,nu, p, n, np)
 
     for m = 1:maxiter
         ## expectation
@@ -111,13 +117,24 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
         for i = 1:n
             indexi = indexy .== uindex[i]
             Bmi = Bmt[indexi,:]
+            yi = y[indexi]
             Vi = inv(transpose(theta) * transpose(Bmi) * Bmi * theta ./sig2
              + Laminv)
             Vhat[:,:,i] = Vi
             mi = 1/sig2 .* Vi * transpose(theta) * transpose(Bmi) *
-            (y[indexi] - Bmi * betam[i,:])
+            (yi - Bmi * betam[i,:])
             mhat[i,:] = mi
+            M2hat[:,:,i]  = mi * transpose(mi) + Vi
+
+            Byr[(i-1)*p+1:(i*p)] = transpose(Bmi) * (yi - Bmi * theta * mi)
+
+            trvalue[i] = tr(Bmi * theta * Vi * transpose(Bmi*theta))
         end
+
+
+        # update betam 
+        betanew = Xinv * (Byr + nu * reshape((deltamold - 1/nu .* vm)*Dmat,np,1))
+        betam = transpose(reshape(betanew, p, n))
 
 
 
