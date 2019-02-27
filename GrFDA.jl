@@ -132,9 +132,13 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
         end
 
 
-        # update betam 
+        # update betam
         betanew = Xinv * (Byr + nu * reshape((deltamold - 1/nu .* vm)*Dmat,np,1))
         betam = transpose(reshape(betanew, p, n))
+
+        betadiff = transpose(Dmat * betam)
+
+        deltam = betadiff + (1/nu) * vm
 
 
 
