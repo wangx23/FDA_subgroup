@@ -84,8 +84,8 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
     theta = zeros(p, P)
     for i = 1:P
         thetai = inv(transpose(Bmi)*Bmi)* transpose(Bmi) * psim[:,i]
-        #theta[:,i]= thetai/sqrt(sum(thetai.^2))
-        theta[:,i]  = thetai
+        theta[:,i]= thetai/sqrt(sum(thetai.^2))
+        #theta[:,i]  = thetai
     end
 
     sig2 = mean(residual.^2)
@@ -102,14 +102,15 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
     Vhat = zeros(P,P,n)  # a (P,P,n) array
-    M2hat = zeros(P,P,n)
-    Byr = zeros(np)
-    trvalue = zeros(n)
+    Mhat = zeros(P,P,n)
+    Sigma = zeros(P,P)
 
+    InvE = zeros(p,p,P)
+    BtyE = zeros(p,P)
 
     betam = betam0
 
-    Xinv = inverseb(indexy,Bmt,nu, p, n, np)
+    Vii = zeros(P,P)
 
     for m = 1:maxiter
         ## expectation
@@ -117,28 +118,37 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
         for i = 1:n
             indexi = indexy .== uindex[i]
             Bmi = Bmt[indexi,:]
-            yi = y[indexi]
-            Vi = inv(transpose(theta) * transpose(Bmi) * Bmi * theta ./sig2
+            BtB = transpose(Bmi) * Bmi
+            Bty = transpose(Bmi) * (y[indexi] - Bmi * betam[i,:])
+            Vi = inv(transpose(theta) * BtB * theta ./sig2
              + Laminv)
             Vhat[:,:,i] = Vi
-            mi = 1/sig2 .* Vi * transpose(theta) * transpose(Bmi) *
-            (yi - Bmi * betam[i,:])
+            mi = 1/sig2 .* Vi * transpose(theta) * Bty
             mhat[i,:] = mi
-            M2hat[:,:,i]  = mi * transpose(mi) + Vi
+            Mhat[:,:,i] = mi * transpose(mi) + Vi
+            global Sigma = Sigma +  mi * transpose(mi) + Vi
 
-            Byr[(i-1)*p+1:(i*p)] = transpose(Bmi) * (yi - Bmi * theta * mi)
+            global Vii = Vii + Vi
 
-            trvalue[i] = tr(Bmi * theta * Vi * transpose(Bmi*theta))
+            for j = 1:P
+                InvE[:,:,j] = InvB[:,:,j] + BtB .* (mi[j]^2 + Vi[j,j])
+                temp = zeros(p,1)
+                for j1 = (1:P)[1:P .!=j]
+                    temp = temp + theta[:,j1] .*(mi[j1]*mi[j] + Vi[j1,j])
+                end
+                BtyE[:,j] = BtyE[:,j] + Bty .* mi[j] - BtB * temp
+            end
+
         end
 
+        Sigma = Sigma ./n
 
-        # update betam
-        betanew = Xinv * (Byr + nu * reshape((deltamold - 1/nu .* vm)*Dmat,np,1))
-        betam = transpose(reshape(betanew, p, n))
+# update theta
+        for j = 1:P
+            theta = inv(InvE[:,:,j]) * BtyE[:,j]
+        end
 
-        betadiff = transpose(Dmat * betam)
-
-        deltam = betadiff + (1/nu) * vm
+        M0 = theta * Sigma * transpose(theta)
 
 
 
