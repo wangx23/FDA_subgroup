@@ -7,11 +7,11 @@
 using LinearAlgebra
 
 function Bsplinestd(x::Vector, knots::Vector; g::Int = 1000, boundary::Vector = [0,1])
-    nknots = length(knots)
-    L = (boundary[2] - boundary[1])/(g + 1) # interval length
+    nknots = length(knots) ## interior knots
+    L = boundary[2] - boundary[1] # interval length
     nx = length(x)
     # grid points
-    gridx = collect(range(boundary[1] + L,length = g, stop = boundary[2] - L))
+    gridx = collect(range(boundary[1],length = g + 2, stop = boundary[2]))[2:(g+1)]
 
 ## degree 3
     Bm0 = zeros(g, nknots+ 4*2 - 1)
@@ -43,7 +43,7 @@ function Bsplinestd(x::Vector, knots::Vector; g::Int = 1000, boundary::Vector = 
         end
     end
 
-    Bm0 = Bm0[:,2:(nknots+4)] # remove intercept
+    Bm0 = Bm0[:,1:(nknots+4)]
     Bm0[gridx.==boundary[2],end] .= 1
     Rm = qr(Bm0).R
     Tm = sqrt(g/L) * pinv(Rm)
@@ -71,7 +71,7 @@ function Bsplinestd(x::Vector, knots::Vector; g::Int = 1000, boundary::Vector = 
         end
     end
 
-    Bmx = Bmx[:,2:(nknots+4)] # remove intercept
+    Bmx = Bmx[:,1:(nknots+4)] # remove intercept
     Bmx[x.==boundary[2],end] .= 1
 
     Bm = Bmx * Tm

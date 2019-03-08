@@ -16,7 +16,9 @@ indexy = data.ind
 tm = data.time
 y = data.obs
 
-Bm = Bsplinestd(data.time, knots, g = 20,boundary = [0,1])
+knots = collect(range(0,length = 7, stop = 1))[2:6]
+Bm = Bsplinestd(data.time, knots, g = 100,boundary = [0,1])
+
 CSV.write("data.csv",data)
 writedlm("Bm.txt",Bm)
 
