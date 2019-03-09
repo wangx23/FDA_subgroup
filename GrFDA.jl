@@ -29,7 +29,8 @@ function GrFDA(;indexy::Vector, tm::Vector, y::Vector, P::Int,
     maxiter::UInt = 1000, tolabs::Number = 1e-4, tolrel::Number = 1e-2)
 
 
-    Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary) # Bspline matrix
+    #Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary) # Bspline matrix
+    Bmt = orthogonalBsplines(tm, knots)
 
     ntotal = length(y)
     p = size(Bmt, 2)
