@@ -220,7 +220,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         flag = 1
     end
 
-    res = (index = uindex, beta = betam, sig2 = sig2,
+    res = (index = uindex, beta = betam, sig2 = sig2, theta = theta, lamj = lamj,
     deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
@@ -230,8 +230,3 @@ end
 
 res1 = GrFDA(indexy,tm,y,knots,3,wt,betam0,lam = 0.3,maxiter = 1000)
 sort(res1.beta[:,1])
-
-temp = 0
-for i = 1:10
-    global temp += 1
-end
