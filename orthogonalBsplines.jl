@@ -27,7 +27,7 @@ function orthogonalBsplines(x::Vector, knots::Vector;boundary::Vector = [0,1],
 		 s = s + di[i]*transpose(M2[:,:,i]) * Delta * M2[:,:,i]
 	end
 
-	s = round.(s;digits = 15)
+	s = Symmetric(s)
 	L = inv(cholesky(s).U)
 
 	N = M2

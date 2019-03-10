@@ -1,13 +1,15 @@
 ##### calculate initial value ####
-include("Bsplinestd.jl")
+#include("Bsplinestd.jl")
 include("inverseb.jl")
+include("orthogonalBsplines.jl")
 
 function initial(indexy::Vector, tm::Vector, y::Vector,
     knots::Vector; g::Int = 1000, boundary::Vector = [0,1],
     lam::Number = 0.001, K0::Int = 0)
 
     ntotal = length(y)
-    Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary)
+    #Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary)
+    Bmt = orthogonalBsplines(tm,knots)
     p = size(Bmt, 2)
     uindex = unique(indexy) # unique id for each obs
     n = length(uindex) # number of unique ids
@@ -24,7 +26,7 @@ function initial(indexy::Vector, tm::Vector, y::Vector,
 
     betam0 = XtX * Xty
 
-    betam = transpose(reshape(betam0,p,n))
+    betam = convert(Array, transpose(reshape(betam0,p,n)))
 
     if K0 ==0 || K0==n
         return betam
