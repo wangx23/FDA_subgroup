@@ -228,5 +228,5 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 end
 
 
-res1 = GrFDA(indexy,tm,y,knots,3,wt,betam0,lam = 0.3,maxiter = 1000)
+res1 = GrFDA(indexy,tm,y,knots,3,wt,betam0,lam = 0.3,maxiter = 100)
 sort(res1.beta[:,1])

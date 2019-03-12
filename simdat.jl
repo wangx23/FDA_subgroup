@@ -40,13 +40,13 @@ function simdat(sig2::Number, lamj::Vector;
              time = repeat(tvec, ncl*2),
              obs = zeros(ntotal))
 
-    rande = sig2 * randn(ntotal)
+    rande = sqrt(sig2) * randn(ntotal)
 
     for i = 1:(ntotal)
         ti = data.time[i]
         groupi = data.group[i]
-        vi = lamj[1]*randn(1)[1] + lamj[2]*randn(1)[1]*psi2(ti) +
-                lamj[3]*randn(1)[1]*psi3(ti)
+        vi = sqrt(lamj[1])*randn(1)[1] + sqrt(lamj[2])*randn(1)[1]*psi2(ti) +
+                sqrt(lamj[3])*randn(1)[1]*psi3(ti)
 
         if groupi== 1
             data.obs[i] = m1(ti) + vi
