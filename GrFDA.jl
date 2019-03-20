@@ -48,7 +48,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     i0 = 0
     for i = 1:(n - 1)
         for j = (i+1):n
-            i0 += 1
+            global i0 += 1
             Dmat[i0,i] = 1
             Dmat[i0,j] = -1
         end
@@ -145,7 +145,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             mhat[i,:] = mi
             #Vhat[:,:,i] = Vi
             #Mhat[:,:,i] = mi * transpose(mi) + Vi
-            Sigma = Sigma +  mi * transpose(mi) + Vi
+            global Sigma = Sigma +  mi * transpose(mi) + Vi
 
             #global Vii = Vii + Vi
 

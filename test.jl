@@ -6,9 +6,9 @@ include("Bsplinestd.jl")
 include("orthogonalBsplines.jl")
 
 sig2 = 0.2
-lamj = [0.6,0.3,0.1]
+lamj = [0.3,0.2,0.1]
 
-m = 20
+m = 30
 ncl = 50
 data = simdat(sig2, lamj, m = m, ncl = ncl)
 

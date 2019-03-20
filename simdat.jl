@@ -42,18 +42,23 @@ function simdat(sig2::Number, lamj::Vector;
 
     rande = sqrt(sig2) * randn(ntotal)
 
-    for i = 1:(ntotal)
-        ti = data.time[i]
-        groupi = data.group[i]
-        vi = sqrt(lamj[1])*randn(1)[1] + sqrt(lamj[2])*randn(1)[1]*psi2(ti) +
-                sqrt(lamj[3])*randn(1)[1]*psi3(ti)
+    mean1 = m1.(tvec)
+    mean2 = m2.(tvec)
 
-        if groupi== 1
-            data.obs[i] = m1(ti) + vi
-        else
-            data.obs[i] = m2(ti) + vi
-        end
+    ### group 1
+    for i= 1:ncl
+        vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
+                sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+        data.obs[((i-1)*m + 1):(i*m)] = mean1 + vi
     end
+
+    ### group 2
+    for i = (ncl+1):ncl
+        vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
+                sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+        data.obs[((i-1)*m + 1):(i*m)] = mean2 + vi
+    end
+
 
     data.obs = data.obs .+ rande
     return data
