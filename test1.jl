@@ -41,6 +41,10 @@ y = dat1.obs
 knots = collect(range(0,length = 7, stop = 1))[2:6]
 res1 = est(indexy, tm, y, knots,2)
 
+yresid = y .- vcat(repeat(mean1,50),repeat(mean2,50))
+
+res2 = est(indexy, tm, yresid, knots, 2)
+
 
 function est(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-4)
@@ -98,6 +102,8 @@ function est(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     sig2 = mean(y.^2)
     niteration = 0
     diffth = 1
+    difflam = 1
+    lamjold = lamj
 
     for m = 1:maxiter
         #global lamj
@@ -111,9 +117,10 @@ function est(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
         Laminv = diagm(0=> 1 ./lamj)
 
-        for i = 1:n
-            thetaold = theta
+        thetaold = theta
+        lamjold = lamj
 
+        for i = 1:n
             indexi = indexy .== uindex[i]
             Bmi = Bmt[indexi,:]
             BtB = transpose(Bmi) * Bmi
@@ -158,14 +165,16 @@ function est(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         niteration += 1
 
         diffth = norm(thetaold - theta)
+        difflam = norm(lamjold - lamj)
 
         if diffth <= 1e-4
             break
         end
     end
 
-    res = (sig2 = sig2, theta = theta, thetaold = thetaold, diffth = diffth,
-    lamj = lamj, niteration = niteration)
+    res = (sig2 = sig2, theta = theta, thetaold = thetaold,
+    diffth = diffth, difflam = difflam,
+    lamjold = lamjold, lamj = lamj, niteration = niteration)
 
 
 return res

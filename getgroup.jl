@@ -19,11 +19,11 @@ function getgroup(deltam::Array, n::Int; tol = 1e-4)
     j = 0
 
     while (length(ngj) >0)
-      global j = j + 1
+      j = j + 1
       gj = (1:n)[d2[ngj[1],:] .==0]
       indexj = [x in gj for x in ngj]
       gj = ngj[indexj]
-      global ngj = ngj[.!indexj]
+      ngj = ngj[.!indexj]
       groupest[gj] = j * ones(length(gj))
     end
 

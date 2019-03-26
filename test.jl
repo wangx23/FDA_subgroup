@@ -6,7 +6,7 @@ include("Bsplinestd.jl")
 include("orthogonalBsplines.jl")
 
 sig2 = 0.2
-lamj = [0.3,0.2,0.1]
+lamj = [0.3,0.2]
 
 m = 30
 ncl = 50

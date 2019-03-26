@@ -1,4 +1,5 @@
 ##### simulated data ###
+#### two eigenfunctions####
 ## two groups
 using DataFrames
 using Random
@@ -47,15 +48,19 @@ function simdat(sig2::Number, lamj::Vector;
 
     ### group 1
     for i= 1:ncl
-        vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
-                sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+        #vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
+        #        sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+        vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
+                sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
         data.obs[((i-1)*m + 1):(i*m)] = mean1 + vi
     end
 
     ### group 2
-    for i = (ncl+1):ncl
-        vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
-                sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+    for i = (ncl+1):(2*ncl)
+        #vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
+        #        sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+        vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
+                sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
         data.obs[((i-1)*m + 1):(i*m)] = mean2 + vi
     end
 
