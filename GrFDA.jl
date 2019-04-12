@@ -9,10 +9,21 @@ include("initial.jl")
 include("orthogonalBsplines.jl")
 
 
+
+
+include("simdat.jl")
+m = 100
+ncl = 50
+sig2 = 0.1
+lamj = [0.5,1]
+
+data = simdat(sig2, lamj, m = m, ncl = ncl)
+
+
 indexy = data.ind
 tm = data.time
 y = data.obs
-knots = collect(range(0,length = 7, stop = 1))[2:6]
+knots = collect(range(0,length = 6, stop = 1))[2:5]
 boundary = [0,1]
 nu = 1
 gam = 3
@@ -38,7 +49,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     #Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary) # Bspline matrix
     Bmt = orthogonalBsplines(tm, knots)
-    Bmi = orthogonalBsplines(uniqtm,knots)
+    #Bmi = orthogonalBsplines(uniqtm,knots)
 
     ntotal = length(y)
     p = size(Bmt, 2)
@@ -53,7 +64,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     i0 = 0
     for i = 1:(n - 1)
         for j = (i+1):n
-            global i0 += 1
+            i0 += 1
             Dmat[i0,i] = 1
             Dmat[i0,j] = -1
         end
@@ -71,7 +82,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         indexi = indexy.== uindex[i]
         residual[indexi] = y[indexi] - Bmt[indexi,:] * betam0[i,:]
         cv = betam0[i,:] - betam0bar[1,:]
-        global Cm = Cm + cv * transpose(cv)/n
+        Cm = Cm + cv * transpose(cv)/n
 
     end
 
@@ -171,7 +182,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             mhat[i,:] = mi
             #Vhat[:,:,i] = Vi
             #Mhat[:,:,i] = mi * transpose(mi) + Vi
-            global Sigma = Sigma +  mi * transpose(mi) + Vi
+            Sigma = Sigma +  mi * transpose(mi) + Vi
             #global Vii = Vii + Vi
 
             # for updating sig2

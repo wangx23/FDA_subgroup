@@ -33,7 +33,7 @@ end
 sig2 = 0.2
 lamj = [0.3,0.2]
 
-dat1 = simdat1(sig2,lamj,m=30,ncl=100)
+dat1 = simdat1(sig2,lamj,m=100,ncl=100)
 
 indexy = dat1.ind
 tm = dat1.time
