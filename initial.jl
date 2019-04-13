@@ -48,3 +48,37 @@ function initial(indexy::Vector, tm::Vector, y::Vector,
         return betam
     end
 end
+
+
+# for each i, estimate its own coefficients
+function initial2(indexy::Vector, tm::Vector, y::Vector,
+    knots::Vector; boundary::Vector = [0,1],lam::Number = 0.001)
+
+    ntotal = length(y)
+    Bmt = orthogonalBsplines(tm,knots)
+    p = size(Bmt, 2)
+    uindex = unique(indexy) # unique id for each obs
+    n = length(uindex) # number of unique ids
+
+    Dm1 = zeros(p-1, p)
+    for j=1:(p-1)
+        Dm1[j,j] = 1
+        Dm1[j,j+1] = -1
+    end
+
+    Dm2 = Dm1[1:p-2,1:p-1] * Dm1
+
+    Dmlam = lam*transpose(Dm2) * Dm2
+
+
+    betam = zeros(n,p)
+
+    for i = 1:n
+        indexi = indexy.==uindex[i]
+        Bmi = Bmt[indexi,:]
+        BtB = transpose(Bmi) * Bmi
+        betam[i,:] = inv(BtB + Dmlam) * transpose(Bmi) * y[indexi]
+    end
+
+    return betam
+end
