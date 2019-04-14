@@ -32,6 +32,7 @@ maxiter = 1000
 tolabs = 1e-4
 tolrel = 1e-2
 betam0  = initial(indexy,tm,y,knots)
+betam0 = initial2(indexy, tm, y, knots)
 P = 2
 wt = ones(convert(Int,100*99/2))
 
@@ -42,7 +43,7 @@ mean2 = m2.(tvec)
 
 
 function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
-    P::Int, wt::Vector, betam0::Array;
+    P::Int, wt::Vector, betam0::Array, fixbetam::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
     boundary::Vector = [0,1], maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
@@ -70,7 +71,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         end
     end
 
-
     # initial values of parameters
     # calculate covariance matrix, since this is grid data
     betam0bar = mapslices(mean, betam0,dims = 1)
@@ -83,43 +83,11 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         residual[indexi] = y[indexi] - Bmt[indexi,:] * betam0[i,:]
         cv = betam0[i,:] - betam0bar[1,:]
         Cm = Cm + cv * transpose(cv)/n
-
     end
 
     decomp = eigen(Cm)
     lamj = decomp.values[end - P + 1:end]
     theta = decomp.vectors[:,end- P+ 1:end]
-
-    #e2 = mean(residual.^2)
-
-    #residualm = reshape(residual, lent, n)
-
-    #Rm = zeros(lent, lent)
-    #for i = 1:lent
-    #    for j = (i+1):lent
-    #        Rm[i,j] = mean(residualm[i,:].*residualm[j,:])
-    #    end
-    #end
-
-    #Rm = Rm + transpose(Rm)
-    #for i = 1:lent
-    #    Rm[i,i] = e2
-    #end
-
-    #decomp = eigen(Rm)
-    #lamj = decomp.values[end - P + 1:end]
-    #psim = decomp.vectors[:,end- P+ 1:end]
-    #Bmi = Bsplinestd(uniqtm,knots,g = g, boundary = boundary)
-
-
-
-    #theta = zeros(p, P)
-    #for i = 1:P
-    #    thetai = inv(transpose(Bmi)*Bmi)* transpose(Bmi) * psim[:,i]
-    #    theta[:,i]= thetai/sqrt(sum(thetai.^2))
-        #theta[:,i]  = thetai
-    #end
-
 
     sig2 = mean(residual.^2)
 
@@ -133,8 +101,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
-    #Vhat = zeros(P,P,n)  # a (P,P,n) array
-    #Mhat = zeros(P,P,n)
     Sigma = zeros(P,P)
     InvE = zeros(p,p,P)
     BtyE = zeros(p,P)
@@ -160,30 +126,31 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     lamjold = lamj
 
+    #if i<=n/2
+    #    Bty = transpose(Bmi) * (y[indexi] - mean1)
+    #else
+    #    Bty = transpose(Bmi) * (y[indexi] - mean2)
+    #end
+
     for m = 1:maxiter
         ## expectation
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
+        betam = fixbetam
+        sig2 = 0.1999
+
         for i = 1:n
             indexi = indexy .== uindex[i]
             Bmi = Bmt[indexi,:]
             BtB = transpose(Bmi) * Bmi
             Bty = transpose(Bmi) * (y[indexi] - Bmi * betam[i,:])
 
-            #if i<=n/2
-            #    Bty = transpose(Bmi) * (y[indexi] - mean1)
-            #else
-            #    Bty = transpose(Bmi) * (y[indexi] - mean2)
-            #end
 
             Vi = inv(transpose(theta) * BtB * theta ./sig2
              + Laminv)
             mi = 1/sig2 .* Vi * transpose(theta) * Bty
             mhat[i,:] = mi
-            #Vhat[:,:,i] = Vi
-            #Mhat[:,:,i] = mi * transpose(mi) + Vi
             Sigma = Sigma +  mi * transpose(mi) + Vi
-            #global Vii = Vii + Vi
 
             # for updating sig2
             residv[i] = sum((y[indexi] - Bmi *betam[i,:] - Bmi *theta * mi).^2) +
@@ -202,7 +169,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         end
 
         # update sig2
-        sig2 = sum(residv)/ntotal
+        #sig2 = sum(residv)/ntotal
+        sig2 = 0.1999
 
         # update theta and lamj
         Sigma = Sigma ./n
@@ -216,40 +184,40 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         theta = decompm.vectors[:,end- P+ 1:end]
 
         # update betam, vm, deltam
-        for i = 1:n
-            indexi = indexy .== uindex[i]
-            Bmi = Bmt[indexi,:]
-            Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
-        end
+        #for i = 1:n
+        #    indexi = indexy .== uindex[i]
+        #    Bmi = Bmt[indexi,:]
+        #    Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
+        #end
 
-        temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
-        betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
-        betam = transpose(reshape(betanew, p, n))
-        betadiff = transpose(Dmat * betam)
+        #temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
+        #betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
+        #betam = transpose(reshape(betanew, p, n))
+        #betadiff = transpose(Dmat * betam)
 
-        deltam = betadiff + (1/nu) * vm
+        #deltam = betadiff + (1/nu) * vm
 
         # update deltam
-        for i = 1:npair
-            deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
-        end
-        vm =  vm + nu * (betadiff - deltam)
+        #for i = 1:npair
+        #    deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
+        #end
+        #vm =  vm + nu * (betadiff - deltam)
 
-        normbd[1] = norm(betadiff)
-        normbd[2] = norm(deltam)
+        #normbd[1] = norm(betadiff)
+        #normbd[2] = norm(deltam)
 
-        tolpri = tolabs*sqrt(npair*p) + tolrel* maximum(normbd)
-        toldual = tolabs*sqrt(n * p) + tolrel * norm(vm * Dmat)
+        #tolpri = tolabs*sqrt(npair*p) + tolrel* maximum(normbd)
+        #toldual = tolabs*sqrt(n * p) + tolrel * norm(vm * Dmat)
 
-        rvalue = norm(betadiff - deltam)
-        svalue = nu * norm((deltam - deltamold)*Dmat)
+        #rvalue = norm(betadiff - deltam)
+        #svalue = nu * norm((deltam - deltamold)*Dmat)
 
-        deltamold = deltam
+        #deltamold = deltam
         niteration += 1
 
-      if (rvalue <= tolpri) && (svalue <= toldual)
-          break
-      end
+      #if (rvalue <= tolpri) && (svalue <= toldual)
+        #  break
+     # end
     end
 
     flag = 0
@@ -264,8 +232,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     return res
 end
 
-
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 100)
+betam01 = convert(Array,transpose(resg.alpm[:,group]))
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,betam01,lam = 0,maxiter = 10)
 
 include("getgroup.jl")
 groupest = getgroup(res1.deltam, 100)
