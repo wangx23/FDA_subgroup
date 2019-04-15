@@ -82,6 +82,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         indexi = indexy.== uindex[i]
         residual[indexi] = y[indexi] - Bmt[indexi,:] * betam0[i,:]
         cv = betam0[i,:] - betam0bar[1,:]
+        #cv = betam0[i,:]  - fixbetam[i,:]
         Cm = Cm + cv * transpose(cv)/n
     end
 
@@ -137,7 +138,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
         betam = fixbetam
-        sig2 = 0.1999
 
         for i = 1:n
             indexi = indexy .== uindex[i]
@@ -169,8 +169,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         end
 
         # update sig2
-        #sig2 = sum(residv)/ntotal
-        sig2 = 0.1999
+        sig2 = sum(residv)/ntotal
+
 
         # update theta and lamj
         Sigma = Sigma ./n
@@ -232,8 +232,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     return res
 end
 
-betam01 = convert(Array,transpose(resg.alpm[:,group]))
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,betam01,lam = 0,maxiter = 10)
+betam01 = convert(Array,transpose(resg0.alpm[:,group]))
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,betam01,lam = 0,maxiter = 1000)
 
 include("getgroup.jl")
 groupest = getgroup(res1.deltam, 100)

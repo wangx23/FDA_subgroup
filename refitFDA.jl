@@ -25,10 +25,12 @@ group = unique(data[:,1:2])[:,1]
 
 include("initial.jl")
 using LinearAlgebra
+using Clustering
+
 
 
 function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::Vector,
-    P::Int, fixalpm::Array; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-5)
+    P::Int; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-5)
 
     Bmt = orthogonalBsplines(tm, knots)
     ntotal = length(y)
@@ -53,9 +55,15 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     alpm = reshape(est,p,ng)
 
     betam0 = initial2(indexy, tm, y, knots)
+    #betam0bar = mapslices(mean, betam0,dims = 1)
+    #reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    #groupkm = reskm.assignments
+    #centerskm = reskm.centers
     Cm = zeros(p,p)
     for i=1:n
         cv = betam0[i,:] - alpm[:,group[i]]
+        #cv = betam0[i,:] - betam0bar[1,:]
+        #cv = betam0[i,:] - centerskm[:,groupkm[i]]
         Cm = Cm + cv * transpose(cv)/n
     end
 
@@ -64,6 +72,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     theta = decomp.vectors[:,end- P+ 1:end]
 
     sig2 = mean((y - Ux * est).^2)
+    sig2 = 0.2
 
     mhat = zeros(n,P)
     Sigma = zeros(P,P)
@@ -78,7 +87,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     for m = 1:maxiter
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
-        alpm = fixalpm
+        sig2 = 0.2
 
         for i = 1:n
             indexi = indexy .== uindex[i]
@@ -122,15 +131,15 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
     ## update est
 
-        #for i = 1:n
-        #    indexi = indexy .== uindex[i]
-        #    Bmi = Bmt[indexi,:]
-        #    Btheta[indexi] =  Bmi *theta * mhat[i,:]
-        #end
+        for i = 1:n
+            indexi = indexy .== uindex[i]
+            Bmi = Bmt[indexi,:]
+            Btheta[indexi] =  Bmi *theta * mhat[i,:]
+        end
 
 
-        #est = inv(transpose(Ux)*Ux)*transpose(Ux)*( y - Btheta)
-        #alpm = reshape(est, p, ng)
+        est = inv(transpose(Ux)*Ux)*transpose(Ux)*( y - Btheta)
+        alpm = reshape(est, p, ng)
 
         niteration += 1
 
@@ -147,9 +156,14 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 end
 
 
-resg1 = refitFDA(indexy, tm, y, knots, group, 2, fixalpm, maxiter = 10)
+resg1 = refitFDA(indexy, tm, y, knots, group, 2,maxiter = 10)
 
-fixalpm = resg.alpm
+
+
+resg0 = refitFDA(indexy, tm, y, knots, group, 2, maxiter = 10)
+fixalpm = resg0.alpm
+
+
 resg.lamj
 resg.sig2
 resg.theta
