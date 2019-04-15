@@ -7,23 +7,23 @@ include("scad.jl")
 #include("Bsplinestd.jl")
 include("initial.jl")
 include("orthogonalBsplines.jl")
+include("getgroup.jl")
 
-
+using Clustering
 
 
 include("simdat.jl")
-m = 100
+m = 50
 ncl = 50
 sig2 = 0.1
-lamj = [0.5,1]
-
+lamj = [0.1,0.2]
 data = simdat(sig2, lamj, m = m, ncl = ncl)
 
 
 indexy = data.ind
 tm = data.time
 y = data.obs
-knots = collect(range(0,length = 6, stop = 1))[2:5]
+knots = collect(range(0,length = 5, stop = 1))[2:4]
 boundary = [0,1]
 nu = 1
 gam = 3
@@ -32,7 +32,7 @@ maxiter = 1000
 tolabs = 1e-4
 tolrel = 1e-2
 betam0  = initial(indexy,tm,y,knots)
-betam0 = initial2(indexy, tm, y, knots)
+betam0 = initial2(indexy, tm, y, knots, lam = 10)
 P = 2
 wt = ones(convert(Int,100*99/2))
 
@@ -43,7 +43,7 @@ mean2 = m2.(tvec)
 
 
 function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
-    P::Int, wt::Vector, betam0::Array, fixbetam::Array;
+    P::Int, wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
     boundary::Vector = [0,1], maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
@@ -78,11 +78,16 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     uniqtm = unique(tm)
     lent = length(uniqtm)
     residual = zeros(ntotal)
+    Random.seed!(1256)
+    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    groupkm = reskm.assignments
+    centerskm = reskm.centers
     for i = 1:n
         indexi = indexy.== uindex[i]
         residual[indexi] = y[indexi] - Bmt[indexi,:] * betam0[i,:]
-        cv = betam0[i,:] - betam0bar[1,:]
+        #cv = betam0[i,:] - betam0bar[1,:]
         #cv = betam0[i,:]  - fixbetam[i,:]
+        cv = betam0[i,:] - centerskm[:,groupkm[i]]
         Cm = Cm + cv * transpose(cv)/n
     end
 
@@ -93,12 +98,13 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     sig2 = mean(residual.^2)
 
     ## initial values
+    betam = transpose(centerskm[:,groupkm])
     deltam = zeros(p, npair)
     deltamold = zeros(p, npair)
     betadiff = zeros(p, npair)
     vm = zeros(p, npair)
-    deltamold = transpose(Dmat * betam0)
-    betam = betam0
+    deltamold = transpose(Dmat * betam)
+
 
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
@@ -137,7 +143,10 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         ## expectation
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
-        betam = fixbetam
+
+        #theta = fixtheta
+        #lamj = fixlamj
+        #sig2 = fixsig2
 
         for i = 1:n
             indexi = indexy .== uindex[i]
@@ -184,40 +193,40 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         theta = decompm.vectors[:,end- P+ 1:end]
 
         # update betam, vm, deltam
-        #for i = 1:n
-        #    indexi = indexy .== uindex[i]
-        #    Bmi = Bmt[indexi,:]
-        #    Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
-        #end
+        for i = 1:n
+            indexi = indexy .== uindex[i]
+            Bmi = Bmt[indexi,:]
+            Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
+        end
 
-        #temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
-        #betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
-        #betam = transpose(reshape(betanew, p, n))
-        #betadiff = transpose(Dmat * betam)
+        temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
+        betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
+        betam = transpose(reshape(betanew, p, n))
+        betadiff = transpose(Dmat * betam)
 
-        #deltam = betadiff + (1/nu) * vm
+        deltam = betadiff + (1/nu) * vm
 
         # update deltam
-        #for i = 1:npair
-        #    deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
-        #end
-        #vm =  vm + nu * (betadiff - deltam)
+        for i = 1:npair
+            deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
+        end
+        vm =  vm + nu * (betadiff - deltam)
 
-        #normbd[1] = norm(betadiff)
-        #normbd[2] = norm(deltam)
+        normbd[1] = norm(betadiff)
+        normbd[2] = norm(deltam)
 
-        #tolpri = tolabs*sqrt(npair*p) + tolrel* maximum(normbd)
-        #toldual = tolabs*sqrt(n * p) + tolrel * norm(vm * Dmat)
+        tolpri = tolabs*sqrt(npair*p) + tolrel* maximum(normbd)
+        toldual = tolabs*sqrt(n * p) + tolrel * norm(vm * Dmat)
 
-        #rvalue = norm(betadiff - deltam)
-        #svalue = nu * norm((deltam - deltamold)*Dmat)
+        rvalue = norm(betadiff - deltam)
+        svalue = nu * norm((deltam - deltamold)*Dmat)
 
-        #deltamold = deltam
+        deltamold = deltam
         niteration += 1
 
-      #if (rvalue <= tolpri) && (svalue <= toldual)
-        #  break
-     # end
+       if (rvalue <= tolpri) && (svalue <= toldual)
+          break
+       end
     end
 
     flag = 0
@@ -233,7 +242,12 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 end
 
 betam01 = convert(Array,transpose(resg0.alpm[:,group]))
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,betam01,lam = 0,maxiter = 1000)
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 1000)
 
-include("getgroup.jl")
+res2 = GrFDA1(indexy,tm,y,knots,2,wt,betam0,fixtheta, fixlamj, fixsig2,lam = 0.3,maxiter = 1000)
+
 groupest = getgroup(res1.deltam, 100)
+plot(groupest)
+
+
+using Plots

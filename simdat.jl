@@ -6,13 +6,33 @@ using Random
 using StatsBase
 using Statistics
 
+#function m1(x::Number)
+#4*(x - 0.5)^2 + 1
+#end
+#function m2(x::Number)
+#    2.5*exp(-25*(x - 0.25)^2) + 2*exp(-50*(x - 0.75)^2)
+#end
+
+#function m1(x::Number)
+#    sqrt(2) * sin(4*pi*x)
+#end
+
+#function m2(x::Number)
+#    exp(-10*(x-0.25)^2)
+#end
+
 function m1(x::Number)
-4*(x - 0.5)^2 + 1
+    cos(2*pi*x)
 end
 
 function m2(x::Number)
-    2.5*exp(-25*(x - 0.25)^2) + 2*exp(-50*(x - 0.75)^2)
+    1-2*exp(-6x)
 end
+
+
+#x0 = collect(range(0,1,length = 100))
+#plot(x0, m1.(x0))
+#plot!(x0, m2.(x0))
 
 ## eigenfunctions
 function psi2(x::Number)
