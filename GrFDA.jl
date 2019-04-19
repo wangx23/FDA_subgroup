@@ -3,43 +3,7 @@
 # y: observation
 # indexy: observation id
 # P is the number of dimension of eigenfunctions
-include("scad.jl")
-#include("Bsplinestd.jl")
-include("initial.jl")
-include("orthogonalBsplines.jl")
-include("getgroup.jl")
-
-using Clustering
-
-
-include("simdat.jl")
-m = 50
-ncl = 50
-sig2 = 0.1
-lamj = [0.1,0.2]
-data = simdat(sig2, lamj, m = m, ncl = ncl)
-
-
-indexy = data.ind
-tm = data.time
-y = data.obs
-knots = collect(range(0,length = 5, stop = 1))[2:4]
-boundary = [0,1]
-nu = 1
-gam = 3
-g = 1000
-maxiter = 1000
-tolabs = 1e-4
-tolrel = 1e-2
-betam0  = initial(indexy,tm,y,knots)
-betam0 = initial2(indexy, tm, y, knots, lam = 10)
-P = 2
-wt = ones(convert(Int,100*99/2))
-
-tvec = collect(range(0, length = m + 2, stop = 1))[2:end-1]
-mean1 = m1.(tvec)
-mean2 = m2.(tvec)
-
+include("header.jl")
 
 
 function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
@@ -48,9 +12,12 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     boundary::Vector = [0,1], maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
 
-    #Bmt = Bsplinestd(tm,knots,g = g, boundary = boundary) # Bspline matrix
+    uniqtm = unique(tm)
     Bmt = orthogonalBsplines(tm, knots)
-    #Bmi = orthogonalBsplines(uniqtm,knots)
+    Bmi = orthogonalBsplines(uniqtm,knots)
+
+
+    lent = length(uniqtm)
 
     ntotal = length(y)
     p = size(Bmt, 2)
@@ -75,8 +42,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     # calculate covariance matrix, since this is grid data
     betam0bar = mapslices(mean, betam0,dims = 1)
     Cm = zeros(p,p)
-    uniqtm = unique(tm)
-    lent = length(uniqtm)
     residual = zeros(ntotal)
     Random.seed!(1256)
     reskm = kmeans(transpose(betam0), 20; maxiter = 200)
@@ -109,8 +74,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
     Sigma = zeros(P,P)
-    InvE = zeros(p,p,P)
-    BtyE = zeros(p,P)
     residv = zeros(n)
     #Vii = zeros(P,P)
 
@@ -118,7 +81,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     Xty = zeros(np)
     for i = 1:n
         indexi = indexy.==uindex[i]
-        Xty[(i-1)*p + 1:(i*p)] = transpose(Bmt[indexi,:]) * y[indexi]
+        Xty[(i-1)*p + 1:(i*p)] = transpose(Bmi) * y[indexi]
     end
 
     b1 = XtXinv * Xty
@@ -133,11 +96,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     lamjold = lamj
 
-    #if i<=n/2
-    #    Bty = transpose(Bmi) * (y[indexi] - mean1)
-    #else
-    #    Bty = transpose(Bmi) * (y[indexi] - mean2)
-    #end
+    BtB = transpose(Bmi) * Bmi
+
 
     for m = 1:maxiter
         ## expectation
@@ -148,34 +108,37 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         #lamj = fixlamj
         #sig2 = fixsig2
 
+        Vi = inv(transpose(theta) * BtB * theta ./sig2
+         + Laminv)
+
+        ysubm = reshape(y, lent, n) - Bmi * transpose(betam)
+
         for i = 1:n
-            indexi = indexy .== uindex[i]
-            Bmi = Bmt[indexi,:]
-            BtB = transpose(Bmi) * Bmi
-            Bty = transpose(Bmi) * (y[indexi] - Bmi * betam[i,:])
-
-
-            Vi = inv(transpose(theta) * BtB * theta ./sig2
-             + Laminv)
+            Bty = transpose(Bmi) * ysubm[:,i]
             mi = 1/sig2 .* Vi * transpose(theta) * Bty
             mhat[i,:] = mi
             Sigma = Sigma +  mi * transpose(mi) + Vi
 
             # for updating sig2
-            residv[i] = sum((y[indexi] - Bmi *betam[i,:] - Bmi *theta * mi).^2) +
+            residv[i] = sum((ysubm[:,i] - Bmi *theta * mi).^2) +
             tr(Bmi * theta * Vi * transpose(theta) * transpose(Bmi))
-
-
-            # for updating theta
-            for j = 1:P
-                InvE[:,:,j] = InvE[:,:,j] + BtB .* (mi[j]^2 + Vi[j,j])
-                temp = zeros(p,1)
-                for j1 = (1:P)[1:P .!=j]
-                    temp = temp + theta[:,j1] .*(mi[j1]*mi[j] + Vi[j1,j])
-                end
-                BtyE[:,j] = BtyE[:,j] + Bty .* mi[j] - BtB * temp
-            end
         end
+
+
+
+        for j = 1:P
+            InvE = BtB .* (sum(mhat[:,j].^2) + n*Vi[j,j])
+
+            temp = zeros(p,1)
+            for j1 = (1:P)[1:P .!=j]
+                temp = temp + theta[:,j1] .* sum((mhat[:,j1].*mhat[:,j] .+ Vi[j1,j]))
+            end
+
+            BtyE = transpose(Bmi) * (ysubm * mhat[:,j])  - BtB * temp
+
+            theta[:,j] = inv(InvE) * BtyE
+        end
+
 
         # update sig2
         sig2 = sum(residv)/ntotal
@@ -183,10 +146,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
         # update theta and lamj
         Sigma = Sigma ./n
-        for j = 1:P
-            theta[:,j] = inv(InvE[:,:,j]) * BtyE[:,j]
-        end
-
         M0 = Symmetric(theta * Sigma * transpose(theta))
         decompm = eigen(M0)
         lamj = decompm.values[end - P + 1:end]
@@ -240,14 +199,3 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     return res
 end
-
-betam01 = convert(Array,transpose(resg0.alpm[:,group]))
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 1000)
-
-res2 = GrFDA1(indexy,tm,y,knots,2,wt,betam0,fixtheta, fixlamj, fixsig2,lam = 0.3,maxiter = 1000)
-
-groupest = getgroup(res1.deltam, 100)
-plot(groupest)
-
-
-using Plots

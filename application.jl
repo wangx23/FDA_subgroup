@@ -16,5 +16,6 @@ betam0 = initial2(indexy, tm, y, knots, lam = 10)
 
 wt = ones(convert(Int,656*655/2))
 
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.5,maxiter = 100)
-groupest = getgroup(res1.deltam, 100)
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 100)
+res2 = GrFDA2(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter2 = 10)
+groupest = getgroup(res1.deltam, 656)
