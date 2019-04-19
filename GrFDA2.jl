@@ -40,34 +40,39 @@ betam0 = initial2(indexy, tm, y, knots, lam = 10)
 
 
 
-
-##### derivative functions ####
-
-#function derivsig2(indexy::Vector,y::Vector, Bmt::Array,
-#    betam::Array, theta::Array)
-
-
-#end
-
-
+ynew = zeros(ntotal)
+Bminew = transP * Bmi
+Bmtnew = zeros(ntotal, p)
+for i = 1:n
+    indexi = indexy .== uindex[i]
+    ynew[indexi] = transP * y[indexi]
+    Bmtnew[indexi,:] = Bminew
+end
 
 
-# replace the sig^-2\Lambda with log(ni)I
+
+
+Bmt = orthogonalBsplines(tm, knots)
+uniqtm = unique(tm)
+lent = length(uniqtm)
+Bmi = orthogonalBsplines(uniqtm,knots)
+
 function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int, wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
-    boundary::Vector = [0,1], maxiter::Int = 1000,
+    boundary::Vector = [0,1], maxiter2::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
 
-
-
     Bmt = orthogonalBsplines(tm, knots)
+    uniqtm = unique(tm)
+    Bmi = orthogonalBsplines(uniqtm,knots)
 
     ntotal = length(y)
     p = size(Bmt, 2)
     uindex = unique(indexy) # unique id for each obs
     n = length(uindex) # number of unique ids
     np = n * p
+    lent = length(uniqtm)
 
     # define the difference matrix
     Ip = diagm(0 => ones(p))
@@ -77,31 +82,37 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     i0 = 0
     for i = 1:(n - 1)
         for j = (i+1):n
-            i0 += 1
+            global i0 += 1
             Dmat[i0,i] = 1
             Dmat[i0,j] = -1
         end
     end
 
-    uniqtm = unique(tm)
-    lent = length(uniqtm)
-    Bmi = orthogonalBsplines(uniqtm,knots)
+    ### initial assuming independent
+    betam = GrFDA0(indexy,uindex,Bmt,Bmi,y,Dmat,Ip,
+    ntotal,p,n,np,lent,npair,P,wt,betam0,lam = lam)
 
-    proxyP = Symmetric(inv(diagm(0 => ones(lent)) + log(lent)*(Bmi * transpose(Bmi))))
-    transP = sqrt(proxyP)
-
+    ### given betam update sig2, theta and lamj
 
 
-    # rewrite y and B
 
-    ynew = zeros(ntotal)
-    Bminew = transP * Bmi
-    Bmtnew = zeros(ntotal, p)
-    for i = 1:n
-        indexi = indexy .== uindex[i]
-        ynew[indexi] = transP * y[indexi]
-        Bmtnew[indexi,:] = Bminew
-    end
+
+
+
+
+
+end
+
+
+####  a function to find groups without consideration of any covariance #
+function GrFDA0(indexy::Vector, uindex::Vector, Bmt::Array, Bmi::Array,
+    y::Vector, Dmat::Array, Ip::Array,
+    ntotal::Int, p::Int, n::Int, np::Int, lent::Int, npair::Int,
+    P::Int, wt::Vector, betam0::Array;
+    lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
+    maxiter::Int = 1000,
+    tolabs::Number = 1e-4, tolrel::Number = 1e-2)
+
 
     ##  initial values
     betam = betam0
@@ -111,11 +122,11 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     vm = zeros(p, npair)
     deltamold = transpose(Dmat * betam)
 
-    XtXinv = inverseb(indexy,Bmtnew,nu*lent, p, n, np)
+    XtXinv = inverseb(indexy,Bmt,nu*lent, p, n, np)
     Xty = zeros(np)
     for i = 1:n
         indexi = indexy.==uindex[i]
-        Xty[(i-1)*p + 1:(i*p)] = transpose(Bminew) * ynew[indexi]
+        Xty[(i-1)*p + 1:(i*p)] = transpose(Bmi) * y[indexi]
     end
 
     b1 = XtXinv * Xty
@@ -166,13 +177,13 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         flag = 1
     end
 
-    res = (index = uindex, beta = betam,
-    deltam = deltam, rvalue = rvalue, svalue = svalue,
-    tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
-
-    return res
+    return betam
 end
 
+function estEM(Bmi::Array,betam::Array)
+
+
+end
 
 res2 = GrFDA2(indexy,tm,y,knots, 2, wt, betam0, maxiter = 10,lam =0.4)
 
