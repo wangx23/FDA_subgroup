@@ -342,6 +342,7 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         resm1 = GrFDA1(indexy,uindex,Bmt,Bmi,y,theta, lamj, sig2,Dmat,Ip,
         ntotal,p,n,np,lent,npair,P,wt,betam,lam = lam,maxiter = maxiter)
         betam = resm1.beta
+        deltam = resm1.deltam
 
         maxtol = maximum([maximum(abs.(betam - betamold)),
         maximum(abs.(theta - thetaold)),
@@ -350,7 +351,6 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
          niteration += 1
 
         if maxtol <= tol2
-            deltam = resm1.deltam
             break
         end
     end

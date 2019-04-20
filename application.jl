@@ -51,7 +51,7 @@ res11 = GrFDA(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,maxiter = 1000)
 group11 = getgroup(res11.deltam,62)
 
 res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,
-maxiter2 = 100, maxiter = 100)
+maxiter2 = 10, maxiter = 100)
 group12 = getgroup(res12.deltam,62)
 res12.lamj
 
