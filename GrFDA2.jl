@@ -341,7 +341,7 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
         resm1 = GrFDA1(indexy,uindex,Bmt,Bmi,y,theta, lamj, sig2,Dmat,Ip,
         ntotal,p,n,np,lent,npair,P,wt,betam,lam = lam,maxiter = maxiter)
-        betam = betamold
+        betam = resm1.beta
 
         maxtol = maximum([maximum(abs.(betam - betamold)),
         maximum(abs.(theta - thetaold)),

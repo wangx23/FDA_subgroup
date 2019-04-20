@@ -5,6 +5,8 @@ using Random
 include("initial.jl")
 include("GrFDA.jl")
 include("GrFDA2.jl")
+include("GrInd.jl")
+
 
 
 
@@ -38,10 +40,12 @@ betam01 = initial2(indexy1, tm1, y1, knots, lam = 10)
 
 wt1 = ones(convert(Int,62*61/2))
 
-res11 = GrFDA(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,maxiter = 1000)
+res10 = GrInd(indexy1,tm1,y1,knots,2,wt1,betam01, lam  = 0.3, maxiter = 100)
+
+res11 = GrFDA(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,maxiter = 100)
 group11 = getgroup(res11.deltam,62)
 
-res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.15,
+res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,
 maxiter2 = 10, maxiter = 100)
 group12 = getgroup(res12.deltam,62)
 res12.lamj
