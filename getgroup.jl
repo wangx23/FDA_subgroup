@@ -15,7 +15,7 @@ function getgroup(deltam::Array, n::Int; tol = 1e-4)
     d2 = transpose(d2) + d2
 
     ngj = 1:n
-    groupest = zeros(n)
+    groupest = zeros(Int,n)
     j = 0
 
     while (length(ngj) >0)
@@ -24,7 +24,7 @@ function getgroup(deltam::Array, n::Int; tol = 1e-4)
       indexj = [x in gj for x in ngj]
       gj = ngj[indexj]
       ngj = ngj[.!indexj]
-      groupest[gj] = j * ones(length(gj))
+      groupest[gj] = j * ones(Int,length(gj))
     end
 
     return groupest

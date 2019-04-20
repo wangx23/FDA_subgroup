@@ -6,6 +6,10 @@ include("initial.jl")
 include("GrFDA.jl")
 include("GrFDA2.jl")
 include("GrInd.jl")
+include("GrFDAproxy.jl")
+include("refitFDA.jl")
+
+
 
 
 
@@ -50,3 +54,7 @@ res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,
 maxiter2 = 100, maxiter = 100)
 group12 = getgroup(res12.deltam,62)
 res12.lamj
+
+res13 = GrFDAproxy(indexy1, tm1, y1, knots,2, wt1, betam01, lam = 0.3, maxiter =1000)
+group13 = getgroup(res13.deltam, 62)
+refit13 = refitFDA(indexy1, tm1, y1, knots, group13,2)

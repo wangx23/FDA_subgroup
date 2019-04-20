@@ -119,9 +119,14 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         end
     end
 
+    flag = 0
+    if niteration == maxiter
+        flag = 1
+    end
+
     res = (index = uindex, sig2 = sig2, theta = theta, alpm = alpm,
     lamj = lamj, lamjold = lamjold,
-     niteration = niteration)
+     niteration = niteration, flag = flag)
 
     return res
 end
