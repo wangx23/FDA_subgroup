@@ -1,139 +1,7 @@
-####### an algorithm without EM algorithm #####
+#######  two steps iterative algorithms #####
+### GrFDA2 uses GrFDA0, estEM and GrFDA1
 
-using Calculus
-using LinearAlgebra
-using Clustering
-
-include("initial.jl")
-include("simdat.jl")
-include("scad.jl")
-
-
-m = 50
-ncl = 50
-sig2 = 0.1
-lamj = [0.1,0.2]
-
-data = simdat(sig2, lamj, m = m, ncl = ncl)
-
-indexy = data.ind
-tm = data.time
-y = data.obs
-knots = collect(range(0,length = 5, stop = 1))[2:4]
-boundary = [0,1]
-maxiter = 1000
-P = 2
-nu = 1
-gam = 3
-tolabs = 1e-4
-tolrel = 1e-2
-wt = ones(convert(Int,100*99/2))
-
-tvec = collect(range(0, length = m + 2, stop = 1))[2:end-1]
-mean1 = m1.(tvec)
-mean2 = m2.(tvec)
-
-group = unique(data[:,1:2])[:,1]
-
-betam0 = initial2(indexy, tm, y, knots, lam = 10)
-
-
-res2 = GrFDA2(indexy,tm,y,knots,2, wt, betam0, lam = 0.3)
-
-function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
-    P::Int, wt::Vector, betam0::Array;
-    lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
-    boundary::Vector = [0,1], maxiter2::Int = 100, maxiter= 100,
-    tol2 = 1e-3)
-
-    Bmt = orthogonalBsplines(tm, knots)
-    uniqtm = unique(tm)
-    Bmi = orthogonalBsplines(uniqtm,knots)
-
-    ntotal = length(y)
-    p = size(Bmt, 2)
-    uindex = unique(indexy) # unique id for each obs
-    n = length(uindex) # number of unique ids
-    np = n * p
-    lent = length(uniqtm)
-
-    # define the difference matrix
-    Ip = diagm(0 => ones(p))
-    npair = convert(Int,n * (n - 1)/2)
-
-    Dmat = zeros(npair, n) # difference matrix
-    i0 = 0
-    for i = 1:(n - 1)
-        for j = (i+1):n
-            i0 += 1
-            Dmat[i0,i] = 1
-            Dmat[i0,j] = -1
-        end
-    end
-
-    ### initial assuming independent
-    betam = GrFDA0(indexy,uindex,Bmt,Bmi,y,Dmat,Ip,
-    ntotal,p,n,np,lent,npair,P,wt,betam0,lam = lam,maxiter = maxiter)
-
-    ## initial value of sig2, theta and lamj
-    Cm = zeros(p,p)
-    residual = zeros(ntotal)
-    Random.seed!(1256)
-    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
-    groupkm = reskm.assignments
-    centerskm = reskm.centers
-    for i = 1:n
-        indexi = indexy.== uindex[i]
-        residual[indexi] = y[indexi] - Bmi * betam0[i,:]
-        cv = betam0[i,:] - centerskm[:,groupkm[i]]
-        Cm = Cm + cv * transpose(cv)/n
-    end
-
-    decomp = eigen(Cm)
-    lamj = decomp.values[end - P + 1:end]
-    theta = decomp.vectors[:,end- P+ 1:end]
-    sig2 = mean(residual.^2)
-
-    ### given betam update sig2, theta and lamj
-
-    maxtol = 1
-    niteration = 0
-    deltam = zeros(p, npair)
-
-
-    for m = 1:maxiter2
-
-        lamjold = lamj
-        thetaold = theta
-        sig2old = sig2
-        betamold = betam
-
-        resm = estEM(Bmi,betam,theta,lamj,sig2, maxiter = maxiter)
-
-        theta = resm.theta
-        lamj = resm.lamj
-        sig2 = resm.sig2
-
-        resm1 = GrFDA1(indexy,uindex,Bmt,Bmi,y,theta, lamj, sig2,Dmat,Ip,
-        ntotal,p,n,np,lent,npair,P,wt,betam,lam = lam,maxiter = maxiter)
-        betam = betamold
-
-        maxtol = maximum([maximum(abs.(betam - betamold)),
-        maximum(abs.(theta - thetaold)),
-        maximum(abs.(lamj - lamjold)),abs(sig2 - sig2old)])
-
-         niteration += 1
-
-        if maxtol <= tol2
-            deltam = resm1.deltam
-            break
-        end
-    end
-
-    res2 = (beta = betam, deltam = deltam, theta = theta, lamj = lamj, sig2 = sig2,
-    niteration = niteration)
-    return res2
-end
+include("header.jl")
 
 
 ####  a function to find groups without consideration of any covariance #
@@ -212,7 +80,8 @@ function GrFDA0(indexy::Vector, uindex::Vector, Bmt::Array, Bmi::Array,
     return convert(Array,betam)
 end
 
-function estEM(Bmi::Array,betam::Array, theta::Array, lamj::Vector, sig2::Number;
+function estEM(y::Vector, Bmi::Array,betam::Array, theta::Array,
+    lamj::Vector, sig2::Number, ntotal::Int, p::Int, P::Int;
     maxiter = 1000, tolem = 1e-3)
 
     BtB = transpose(Bmi) * Bmi
@@ -393,4 +262,106 @@ function GrFDA1(indexy::Vector, uindex::Vector, Bmt::Array, Bmi::Array,
 
 
     return res
+end
+
+##
+function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
+    P::Int, wt::Vector, betam0::Array;
+    lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
+    boundary::Vector = [0,1], maxiter2::Int = 100, maxiter= 100,
+    tol2 = 1e-3)
+
+    Bmt = orthogonalBsplines(tm, knots)
+    uniqtm = unique(tm)
+    Bmi = orthogonalBsplines(uniqtm,knots)
+
+    ntotal = length(y)
+    p = size(Bmt, 2)
+    uindex = unique(indexy) # unique id for each obs
+    n = length(uindex) # number of unique ids
+    np = n * p
+    lent = length(uniqtm)
+
+    # define the difference matrix
+    Ip = diagm(0 => ones(p))
+    npair = convert(Int,n * (n - 1)/2)
+
+    Dmat = zeros(npair, n) # difference matrix
+    i0 = 0
+    for i = 1:(n - 1)
+        for j = (i+1):n
+            i0 += 1
+            Dmat[i0,i] = 1
+            Dmat[i0,j] = -1
+        end
+    end
+
+    ### initial assuming independent
+    betam = GrFDA0(indexy,uindex,Bmt,Bmi,y,Dmat,Ip,
+    ntotal,p,n,np,lent,npair,P,wt,betam0,lam = lam,maxiter = maxiter)
+
+    ## initial value of sig2, theta and lamj
+    Cm = zeros(p,p)
+    residual = zeros(ntotal)
+    Random.seed!(1256)
+    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    groupkm = reskm.assignments
+    centerskm = reskm.centers
+    for i = 1:n
+        indexi = indexy.== uindex[i]
+        residual[indexi] = y[indexi] - Bmi * betam0[i,:]
+        cv = betam0[i,:] - centerskm[:,groupkm[i]]
+        Cm = Cm + cv * transpose(cv)/n
+    end
+
+    decomp = eigen(Cm)
+    lamj = decomp.values[end - P + 1:end]
+    theta = decomp.vectors[:,end- P+ 1:end]
+    sig2 = mean(residual.^2)
+
+    ### given betam update sig2, theta and lamj
+
+    maxtol = 1
+    niteration = 0
+    deltam = zeros(p, npair)
+
+
+    for m = 1:maxiter2
+
+        lamjold = lamj
+        thetaold = theta
+        sig2old = sig2
+        betamold = betam
+
+        resm = estEM(y,Bmi,betam,theta,lamj,sig2,ntotal,p,P, maxiter = maxiter)
+
+        theta = resm.theta
+        lamj = resm.lamj
+        sig2 = resm.sig2
+
+        resm1 = GrFDA1(indexy,uindex,Bmt,Bmi,y,theta, lamj, sig2,Dmat,Ip,
+        ntotal,p,n,np,lent,npair,P,wt,betam,lam = lam,maxiter = maxiter)
+        betam = betamold
+
+        maxtol = maximum([maximum(abs.(betam - betamold)),
+        maximum(abs.(theta - thetaold)),
+        maximum(abs.(lamj - lamjold)),abs(sig2 - sig2old)])
+
+         niteration += 1
+
+        if maxtol <= tol2
+            deltam = resm1.deltam
+            break
+        end
+    end
+
+    flag = 0
+    if niteration == maxiter2
+        flag = 1
+    end
+
+
+    res2 = (beta = betam, deltam = deltam, theta = theta, lamj = lamj, sig2 = sig2,
+    niteration = niteration, flag = flag)
+    return res2
 end

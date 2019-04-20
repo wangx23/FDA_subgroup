@@ -2,6 +2,8 @@
 #include("Bsplinestd.jl")
 include("inverseb.jl")
 include("orthogonalBsplines.jl")
+include("header.jl")
+
 
 function initial(indexy::Vector, tm::Vector, y::Vector,
     knots::Vector; g::Int = 1000, boundary::Vector = [0,1],
