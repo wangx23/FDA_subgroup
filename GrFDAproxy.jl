@@ -2,7 +2,7 @@
 include("header.jl")
 
 function GrFDAproxy(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
-    P::Int, wt::Vector, betam0::Array;
+     wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
     boundary::Vector = [0,1], maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)

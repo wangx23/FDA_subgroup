@@ -52,6 +52,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     BtyE = zeros(p,P)
     residv = zeros(n)
     Btheta = zeros(ntotal)
+    postE = zeros(n,P)
 
     niteration = 0
     lamjold = lamj
@@ -69,6 +70,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
              + Laminv)
              mi = 1/sig2 .* Vi * transpose(theta) * Bty
              mhat[i,:] = mi
+             postE[i,:] = mi.^ + diag(Vi)
              Sigma = Sigma +  mi * transpose(mi) + Vi
 
         # for updating sig2
@@ -124,8 +126,8 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         flag = 1
     end
 
-    res = (index = uindex, sig2 = sig2, theta = theta, alpm = alpm,
-    lamj = lamj, lamjold = lamjold,
+    res = (index = uindex, lent = length(unique(tm)), sig2 = sig2, theta = theta, alpm = alpm,
+    lamj = lamj, lamjold = lamjold, postE = postE,
      niteration = niteration, flag = flag)
 
     return res

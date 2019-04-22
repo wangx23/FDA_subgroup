@@ -73,7 +73,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
-    postE = zeros(n,P)
+    #postE = zeros(n,P)
     Sigma = zeros(P,P)
     residv = zeros(n)
     #Vii = zeros(P,P)
@@ -115,7 +115,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             Bty = transpose(Bmi) * ysubm[:,i]
             mi = 1/sig2 .* Vi * transpose(theta) * Bty
             mhat[i,:] = mi
-            postE[i,:] = mi + diag(Vi)
+            #postE[i,:] = mi.^2 + diag(Vi)
             Sigma = Sigma +  mi * transpose(mi) + Vi
 
             # for updating sig2
@@ -155,7 +155,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
         end
 
-        temp = reshape((deltam - 1/nu * vm)*Dmat, np,1)
+        temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
         betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
         betam = transpose(reshape(betanew, p, n))
         betadiff = transpose(Dmat * betam)
@@ -185,13 +185,23 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
        end
     end
 
+
+    residf = zeros(n)
+    for i = 1:n
+        indexi = indexy .== uindex[i]
+        residf[i] = sum((y[indexi] - Bmi * betam[i,:] -
+        Bmi * theta * mhat[i,:]).^2)
+    end
+
+    residsum = sum(residf)
+
     flag = 0
     if niteration == maxiter
         flag = 1
     end
 
     res = (index = uindex, beta = betam, sig2 = sig2, theta = theta, lamj = lamj, lamjold = lamjold,
-    postE = postE, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
+    residsum = residsum, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
     return res
