@@ -104,7 +104,7 @@ function GrInd(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         flag = 1
     end
 
-    res = (index = uindex, beta = betam, sig2 = sig2, 
+    res = (index = uindex, beta = betam, sig2 = sig2, lent = lent,
     deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 

@@ -9,7 +9,7 @@ include("header.jl")
 function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int, wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
-    boundary::Vector = [0,1], maxiter::Int = 1000,
+    boundary::Vector = [0,1], K0 = 20, maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
 
     uniqtm = unique(tm)
@@ -44,7 +44,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     Cm = zeros(p,p)
     residual = zeros(ntotal)
     Random.seed!(1256)
-    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    reskm = kmeans(transpose(betam0), K0; maxiter = 200)
     groupkm = reskm.assignments
     centerskm = reskm.centers
     for i = 1:n
@@ -73,6 +73,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     ## define some variables
     mhat = zeros(n,P)# a (n,P) matrix
+    postE = zeros(n,P)
     Sigma = zeros(P,P)
     residv = zeros(n)
     #Vii = zeros(P,P)
@@ -104,9 +105,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
 
-        #theta = fixtheta
-        #lamj = fixlamj
-        #sig2 = fixsig2
 
         Vi = inv(transpose(theta) * BtB * theta ./sig2
          + Laminv)
@@ -117,14 +115,13 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             Bty = transpose(Bmi) * ysubm[:,i]
             mi = 1/sig2 .* Vi * transpose(theta) * Bty
             mhat[i,:] = mi
+            postE[i,:] = mi + diag(Vi)
             Sigma = Sigma +  mi * transpose(mi) + Vi
 
             # for updating sig2
             residv[i] = sum((ysubm[:,i] - Bmi *theta * mi).^2) +
             tr(Bmi * theta * Vi * transpose(theta) * transpose(Bmi))
         end
-
-
 
         for j = 1:P
             InvE = BtB .* (sum(mhat[:,j].^2) + n*Vi[j,j])
@@ -158,7 +155,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
         end
 
-        temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
+        temp = reshape((deltam - 1/nu * vm)*Dmat, np,1)
         betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
         betam = transpose(reshape(betanew, p, n))
         betadiff = transpose(Dmat * betam)
@@ -194,7 +191,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     end
 
     res = (index = uindex, beta = betam, sig2 = sig2, theta = theta, lamj = lamj, lamjold = lamjold,
-    deltam = deltam, rvalue = rvalue, svalue = svalue,
+    postE = postE, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
     return res

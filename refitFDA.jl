@@ -2,7 +2,7 @@
 include("header.jl")
 
 function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::Vector,
-    P::Int; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-4)
+    P::Int; boundary::Vector = [0,1], K0 = 20, maxiter::Int = 1000, tol = 1e-4)
 
     Bmt = orthogonalBsplines(tm, knots)
     ntotal = length(y)
@@ -29,7 +29,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     betam0 = initial2(indexy, tm, y, knots)
     betam0bar = mapslices(mean, betam0,dims = 1)
     Random.seed!(1256)
-    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    reskm = kmeans(transpose(betam0), K0; maxiter = 200)
     groupkm = reskm.assignments
     centerskm = reskm.centers
     Cm = zeros(p,p)

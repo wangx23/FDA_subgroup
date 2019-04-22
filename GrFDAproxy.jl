@@ -111,8 +111,16 @@ function GrFDAproxy(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         flag = 1
     end
 
-    res = (index = uindex, beta = betam,
-    deltam = deltam, rvalue = rvalue, svalue = svalue,
+    resid = zeros(n)
+    for i = 1:n
+        indexi = indexy .== uindex[i]
+        resid[i] = sum((ynew[indexi] - Bminew * betam[i,:]).^2)
+    end
+
+    residsum = sum(resid)
+
+    res = (index = uindex, beta = betam, deltam = deltam,
+    residsum = residsum, lent = lent, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
     return res

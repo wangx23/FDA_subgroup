@@ -202,7 +202,6 @@ function GrFDA1(indexy::Vector, uindex::Vector, Bmt::Array, Bmi::Array,
     vm = zeros(p, npair)
     deltamold = transpose(Dmat * betam)
 
-
     XtXinv = inverseb(indexy,Bmtnew,nu*lent, p, n, np)
     Xty = zeros(np)
     for i = 1:n
@@ -253,12 +252,21 @@ function GrFDA1(indexy::Vector, uindex::Vector, Bmt::Array, Bmi::Array,
 
     end
 
+    resid = zeros(n)
+    for i = 1:n
+        indexi = indexy .== uindex[i]
+        resid[i] = sum((ynew[indexi] - Bminew * betam[i,:]).^2)
+    end
+
+    residsum = sum(resid)
+
     flag = 0
     if niteration == maxiter
         flag = 1
     end
 
-    res = (beta = convert(Array,betam), deltam = deltam, niteration = niteration, flag = flag)
+    res = (beta = convert(Array,betam), deltam = deltam, residsum = residsum,
+    niteration = niteration, flag = flag)
 
 
     return res
@@ -268,7 +276,7 @@ end
 function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int, wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
-    boundary::Vector = [0,1], maxiter2::Int = 100, maxiter= 100,
+    boundary::Vector = [0,1], K0 = 20,maxiter2::Int = 100, maxiter= 100,
     tol2 = 1e-3)
 
     Bmt = orthogonalBsplines(tm, knots)
@@ -304,7 +312,7 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     Cm = zeros(p,p)
     residual = zeros(ntotal)
     Random.seed!(1256)
-    reskm = kmeans(transpose(betam0), 20; maxiter = 200)
+    reskm = kmeans(transpose(betam0), K0; maxiter = 200)
     groupkm = reskm.assignments
     centerskm = reskm.centers
     for i = 1:n
@@ -324,6 +332,7 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     maxtol = 1
     niteration = 0
     deltam = zeros(p, npair)
+    residsum = 0
 
 
     for m = 1:maxiter2
@@ -343,6 +352,7 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         ntotal,p,n,np,lent,npair,P,wt,betam,lam = lam,maxiter = maxiter)
         betam = resm1.beta
         deltam = resm1.deltam
+        residsum = resm1.residsum
 
         maxtol = maximum([maximum(abs.(betam - betamold)),
         maximum(abs.(theta - thetaold)),
@@ -362,6 +372,6 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
 
     res2 = (beta = betam, deltam = deltam, theta = theta, lamj = lamj, sig2 = sig2,
-    niteration = niteration, flag = flag)
+    residsum = residsum, lent = lent,niteration = niteration, flag = flag)
     return res2
 end

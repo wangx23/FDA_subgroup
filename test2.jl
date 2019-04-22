@@ -3,8 +3,12 @@
 include("initial.jl")
 include("simdat.jl")
 include("scad.jl")
+include("GrInd.jl")
 include("GrFDA.jl")
 include("GrFDA2.jl")
+include("GrFDAproxy.jl")
+include("refitFDA.jl")
+include("BIC.jl")
 
 
 
@@ -36,5 +40,18 @@ group = unique(data[:,1:2])[:,1]
 
 betam0 = initial2(indexy, tm, y, knots, lam = 10)
 
+res0 = GrInd(indexy, tm, y, knots, 2, wt, betam0, lam = 0.3)
+BICind(res0,1)
 
-res2 = GrFDA2(indexy,tm,y,knots,2, wt, betam0, lam = 0.3)
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 1000)
+BICem(res1,1)
+
+res2 = GrFDA2(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,
+maxiter2 = 10, maxiter = 100)
+BIC2(res2,1)
+
+res3 = GrFDAproxy(indexy, tm, y, knots,2, wt, betam0, lam = 0.28, maxiter =1000)
+group3 = getgroup(res3.deltam, 100)
+BICproxy(res3,1)
+
+refit3 = refitFDA(indexy, tm, y, knots, group3,2)
