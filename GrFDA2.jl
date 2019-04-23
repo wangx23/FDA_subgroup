@@ -372,6 +372,6 @@ function GrFDA2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
 
     res2 = (beta = betam, deltam = deltam, theta = theta, lamj = lamj, sig2 = sig2,
-    residsum = residsum, lent = lent,niteration = niteration, flag = flag)
+    residsum = residsum, maxtol = maxtol, lent = lent,niteration = niteration, flag = flag)
     return res2
 end
