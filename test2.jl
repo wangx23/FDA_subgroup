@@ -59,13 +59,13 @@ BICvec1 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
         res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],maxiter = 1000)
-        BICvec1[l,P] = BICem(res1l,1)
+        BICvec1[l,P] = BICem(res1l)
     end
 end
 
 argmin(BICvec1)[1]
 
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = lamvec[12],maxiter = 1000)
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = lamvec[15],maxiter = 1000)
 group1 = getgroup(res1.deltam,100)
 randindex(group,group1)
 

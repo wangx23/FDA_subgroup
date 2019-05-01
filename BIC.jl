@@ -46,6 +46,26 @@ return value
 end
 
 
+function BICem2(obj::NamedTuple)
+npinf = size(obj.beta)
+n = npinf[1]
+p = npinf[2]
+
+P = size(obj.theta)[2]
+nconstraints = P*(P+1)/2
+
+group = getgroup(obj.deltam,n)
+ng = size(unique(group))[1]
+Cn =  log(n*p)
+
+
+value = n *obj.lent * log(obj.residsum/n/obj.lent) +
+Cn*log(n)*(ng*p) + n * (P*p - nconstraints)
+
+
+return value
+end
+
 
 
 

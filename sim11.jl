@@ -7,19 +7,19 @@
 @everywhere include("GrFDAproxy.jl")
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
-@everwhere include("simdat.jl")
+@everywhere include("simdat.jl")
 @everywhere using Dates
 using Distributed
 
 
-@everywhere function sim1(seed)
+@everywhere function sim11(seed)
 
     m = 50
     ncl = 50
     sig2 = 0.1
     lamj = [0.1,0.2]
 
-    data = simdat(sig2, lamj, m = m, ncl = ncl, seed = seed)
+    data = simdat1(sig2, lamj, m = m, ncl = ncl, seed = seed)
 
     indexy = data.ind
     tm = data.time
@@ -134,5 +134,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim1 = pmap(sim1, 1:100)
-writedlm("resultsim1.csv", resultsim1, ',')
+resultsim11 = pmap(sim11, 1:100)
+writedlm("resultsim11.csv", resultsim11, ',')
