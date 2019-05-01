@@ -1,14 +1,14 @@
 ##### a function to simulate and return results ###
-include("initial.jl")
-include("simdat.jl")
-include("scad.jl")
-include("GrInd.jl")
-include("GrFDA.jl")
-include("GrFDA2.jl")
-include("GrFDAproxy.jl")
-include("refitFDA.jl")
-include("BIC.jl")
-using Dates
+@everywhere include("initial.jl")
+@everywhere include("scad.jl")
+@everywhere include("GrInd.jl")
+@everywhere include("GrFDA.jl")
+@everywhere include("GrFDA2.jl")
+@everywhere include("GrFDAproxy.jl")
+@everywhere include("refitFDA.jl")
+@everywhere include("BIC.jl")
+@everywhere using Dates
+using Distributed
 
 
 function sim1(seed)
@@ -46,6 +46,7 @@ function sim1(seed)
     index0 = argmin(BICvec0)
     res0 = GrInd(indexy, tm, y, knots, wt, betam0, lam = lamvec[index0])
     group0 = getgroup(res0.deltam,100)
+    ng0 = size(unique(group0))[1]
     ari0 = randindex(group,group0)[1]
     norm0 = norm(res0.beta - betaor)
 
@@ -63,6 +64,7 @@ function sim1(seed)
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0,lam = lamvec[index1[1]],maxiter = 1000)
     group1 = getgroup(res1.deltam,100)
+    ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
     norm1 = norm(res1.beta - betaor)
     estpc1 = index1[2]
@@ -82,6 +84,7 @@ function sim1(seed)
     index2 = argmin(BICvec2)
     res2 = GrFDA2(indexy,tm,y,knots,index2[2],wt,betam0,lam = lamvec[index2[1]], maxiter2 = 100, maxiter = 50)
     group2 = getgroup(res2.deltam,100)
+    ng2 = size(unique(group2))[1]
     ari2 = randindex(group,group2)[1]
     norm2 = norm(res2.beta - betaor)
     estpc2 = index2[2]
@@ -99,6 +102,7 @@ function sim1(seed)
 
     res3 = GrFDAproxy(indexy, tm, y, knots, wt, betam0, lam = lamvec[index3], maxiter =1000)
     group3 = getgroup(res3.deltam,100)
+    ng3 = size(unique(group3))[1]
     ari3 = randindex(group,group3)[1]
 
     BICvec32 = zeros(3)
@@ -120,14 +124,14 @@ function sim1(seed)
 
 
 
-    resvec = [ari0, ari1, ari2, ari3, norm0, norm1, norm2, norm3,
+    resvec = [ari0, ari1, ari2, ari3, ng0, ng1, ng2, ng3,
+    norm0, norm1, norm2, norm3,
     estpc1, estpc2, estpc3, ts0, ts1, ts2, ts3]
     return resvec
 end
 
 #res1 = sim1(1)
 
-using Distributed
 using DelimitedFiles
-test1 = pmap(sim1, 1:10)
-writedlm("test1.csv", test1, ',')
+resultsim1 = pmap(sim1, 1:100)
+writedlm("resultsim1.csv", resultsim1, ',')
