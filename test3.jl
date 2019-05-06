@@ -17,12 +17,12 @@ ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data = simdat(sig2, lamj, m = m, ncl = ncl,seed = 13)
+data2 = simdat2(sig2, lamj, m = m, ncl = ncl,seed = 1)
 
-indexy = data.ind
-tm = data.time
-y = data.obs
-knots = collect(range(0,length = 5, stop = 1))[2:4]
+indexy2 = data2.ind
+tm2 = data2.time
+y2 = data2.obs
+knots2 = collect(range(0,length = 5, stop = 1))[2:4]
 boundary = [0,1]
 maxiter = 1000
 P = 2
@@ -31,17 +31,21 @@ gam = 3
 tolabs = 1e-4
 tolrel = 1e-2
 wt = ones(convert(Int,100*99/2))
-group = unique(data[:,1:2])[:,1]
+group = unique(data2[:,1:2])[:,1]
 
-betam0 = initial2(indexy, tm, y, knots, lam = 0)
+uniqtm2 = unique(tm2)
+Bmt2 = orthogonalBsplines(tm2, knots2)
+Bmi2 = orthogonalBsplines(uniqtm2,knots2)
 
-uniqtm = unique(tm)
-Bmt = orthogonalBsplines(tm, knots)
-Bmi = orthogonalBsplines(uniqtm,knots)
+mapslices(std, Bmi2, dims = 1)
 
 
+betam02 = initial2(indexy2, tm2, y2, knots2, lam = 0)
 
-lamvec = collect(range(0.1,0.5,step = 0.02))
+mapslices(mean, abs.(betam02),dims = 1)
+mapslices(std, abs.(betam02),dims = 1)
+
+lamvec = collect(range(0.15,0.45,step = 0.01))
 nlam = length(lamvec)
 
 
@@ -60,22 +64,18 @@ randindex(group,group0)
 
 ## EM
 
-lamvec = collect(range(0.15,0.45,step = 0.01))
-nlam = length(lamvec)
-
 BICvec1 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],
-        K0 = 10,maxiter = 1000)
+        res1l = GrFDA(indexy2,tm2,y2,knots2,P,wt,betam02,lam = lamvec[l],
+        K0=10,maxiter = 1000)
         BICvec1[l,P] = BICem(res1l)
     end
 end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = lamvec[10],
-K0=10, maxiter = 1000)
+res1 = GrFDA(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[9],K0=10,maxiter = 1000)
 group1 = getgroup(res1.deltam,100)
 randindex(group,group1)
 

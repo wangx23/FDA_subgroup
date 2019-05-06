@@ -15,7 +15,7 @@ end
 
 
 ## BIC for general case, based on EM####
-function BICem(obj::NamedTuple, c0::Number)
+function BICem(obj::NamedTuple, c0::Number = 1)
 npinf = size(obj.beta)
 n = npinf[1]
 p = npinf[2]
