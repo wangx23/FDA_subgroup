@@ -7,7 +7,7 @@
 @everywhere include("GrFDAproxy.jl")
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
-@everwhere include("simdat.jl")
+@everywhere include("simdat.jl")
 @everywhere using Dates
 using Distributed
 
@@ -32,7 +32,7 @@ using Distributed
     resor = refitFDA(indexy,tm,y,knots,group,2)
     betaor = transpose(resor.alpm[:,group])
 
-    betam0 = initial2(indexy, tm, y, knots, lam = 10)
+    betam0 = initial2(indexy, tm, y, knots, lam = 5)
 
     lamvec = collect(range(0.1,0.5,step = 0.02))
     nlam = length(lamvec)
@@ -56,14 +56,16 @@ using Distributed
     BICvec1 = zeros(nlam,3)
     for l = 1:nlam
         for P = 1:3
-            res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],maxiter = 1000)
+            res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],
+            K0=10,maxiter = 1000)
             BICvec1[l,P] = BICem(res1l,1)
         end
     end
 
     index1 = argmin(BICvec1)
 
-    res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0,lam = lamvec[index1[1]],maxiter = 1000)
+    res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0,lam = lamvec[index1[1]],
+    K0=10,maxiter = 1000)
     group1 = getgroup(res1.deltam,100)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
@@ -77,13 +79,14 @@ using Distributed
     for l = 1:nlam
         for P = 1:3
             res2l = GrFDA2(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],
-            maxiter2 = 100, maxiter = 50)
+            K0=10, maxiter2 = 100, maxiter = 50)
             BICvec2[l,P] = BIC2(res2l,1)
         end
     end
 
     index2 = argmin(BICvec2)
-    res2 = GrFDA2(indexy,tm,y,knots,index2[2],wt,betam0,lam = lamvec[index2[1]], maxiter2 = 100, maxiter = 50)
+    res2 = GrFDA2(indexy,tm,y,knots,index2[2],wt,betam0,lam = lamvec[index2[1]],
+    K0=10,maxiter2 = 100, maxiter = 50)
     group2 = getgroup(res2.deltam,100)
     ng2 = size(unique(group2))[1]
     ari2 = randindex(group,group2)[1]
@@ -134,5 +137,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim1 = pmap(sim1, 1:100)
-writedlm("resultsim1.csv", resultsim1, ',')
+resultsim1v2 = pmap(sim1, 1:100)
+writedlm("resultsim1v2.csv", resultsim1v2, ',')

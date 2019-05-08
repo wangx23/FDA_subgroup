@@ -17,7 +17,7 @@ ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data2 = simdat2(sig2, lamj, m = m, ncl = ncl,seed = 1)
+data2 = simdat2(sig2, lamj, m = m, ncl = ncl,seed = 6)
 
 indexy2 = data2.ind
 tm2 = data2.time
@@ -40,7 +40,7 @@ Bmi2 = orthogonalBsplines(uniqtm2,knots2)
 mapslices(std, Bmi2, dims = 1)
 
 
-betam02 = initial2(indexy2, tm2, y2, knots2, lam = 0)
+betam02 = initial2(indexy2, tm2, y2, knots2, lam = 5)
 
 mapslices(mean, abs.(betam02),dims = 1)
 mapslices(std, abs.(betam02),dims = 1)
@@ -75,7 +75,7 @@ end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[9],K0=10,maxiter = 1000)
+res1 = GrFDA(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[10],K0=10,maxiter = 1000)
 group1 = getgroup(res1.deltam,100)
 randindex(group,group1)
 
