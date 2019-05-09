@@ -17,7 +17,7 @@ ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data = simdat(sig2, lamj, m = m, ncl = ncl,seed = 6)
+data = simdat(sig2, lamj, m = m, ncl = ncl,seed = 10)
 
 indexy = data.ind
 tm = data.time
