@@ -17,7 +17,7 @@ ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data2 = simdat2(sig2, lamj, m = m, ncl = ncl,seed = 6)
+data2 = simdat2(sig2, lamj, m = m, ncl = ncl,seed = 13)
 
 indexy2 = data2.ind
 tm2 = data2.time
@@ -64,6 +64,8 @@ randindex(group,group0)
 
 ## EM
 
+gcv(indexy2, tm2, y2, knots2, lam = 5)
+
 BICvec1 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
@@ -75,7 +77,7 @@ end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[10],K0=10,maxiter = 1000)
+res1 = GrFDA(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[8],K0=10,maxiter = 1000)
 group1 = getgroup(res1.deltam,100)
 randindex(group,group1)
 
@@ -85,13 +87,14 @@ randindex(group,group1)
 BICvec2 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res2l = GrFDA2(indexy,tm,y,knots,P,wt,betam0,lam = lamvec[l],
-        maxiter2 = 100, maxiter = 50)
+        res2l = GrFDA2(indexy2,tm2,y2,knots2,P,wt,betam02,lam = lamvec[l],
+        K0 = 10, maxiter2 = 100, maxiter = 50)
         BICvec2[l,P] = BIC2(res2l,1)
     end
 end
 argmin(BICvec2)
-res2 = GrFDA2(indexy,tm,y,knots,2,wt,betam0,lam = lamvec[6], maxiter2 = 100, maxiter = 50)
+res2 = GrFDA2(indexy2,tm2,y2,knots2,2,wt,betam02,lam = lamvec[10],
+K0=10, maxiter2 = 100, maxiter = 50)
 group2 = getgroup(res2.deltam,100)
 randindex(group,group2)
 
