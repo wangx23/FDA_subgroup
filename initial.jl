@@ -129,7 +129,7 @@ end
 
 
 
-#### initial value each i with different lam value ###
+#### initial value based on gcv ###
 
 function initial3(indexy::Vector, tm::Vector, y::Vector,
     knots::Vector; boundary::Vector = [0,1],
@@ -140,6 +140,7 @@ function initial3(indexy::Vector, tm::Vector, y::Vector,
     uniqtm = unique(tm)
     Bmi = orthogonalBsplines(uniqtm,knots)
     BtB = transpose(Bmi) * Bmi
+    nlam = length(lamv)
 
     p = size(Bmt, 2)
     uindex = unique(indexy) # unique id for each obs
@@ -155,14 +156,24 @@ function initial3(indexy::Vector, tm::Vector, y::Vector,
     Dm2 = Dm1[1:p-2,1:p-1] * Dm1
     Dm = transpose(Dm2) * Dm2
 
+    gcvvec = zeros(nlam)
+    for j = 1:nlam
+        gcvvaluei = 0
+        for i = 1:n
+            indexi = indexy.==uindex[i]
+            yi = y[indexi]
+            gcvvaluei = gcvvaluei + gcvi(yi, Bmi, Dm, nr, lamv[j])
+        end
+        gcvvec[j] = gcvvaluei
+    end
+
+
 
     betam = zeros(n,p)
-
     for i = 1:n
         indexi = indexy.==uindex[i]
         yi = y[indexi]
-        gcvvi = gcvi(yi, Bmi, Dm, nr, lamv)
-        betam[i,:] = inv(BtB + lamv[argmin(gcvvi)]*Dm) * transpose(Bmi) * yi
+        betam[i,:] = inv(BtB + lamv[argmin(gcvvec)]*Dm) * transpose(Bmi) * yi
     end
 
     return betam
@@ -171,22 +182,18 @@ end
 
 
 function gcvi(yi::Vector, Bmi::Array, Dm::Array,
-    nr::Int64,lamv::Vector)
+    nr::Int64,lam1::Number)
 
-    nlam = length(lamv)
-    gcvvec = zeros(nlam)
 
-    for j = 1:nlam
-        Dmlam = lamv[j]*Dm
-        Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
-        Ini = diagm(0 => ones(nr))
-        Ih = Ini - Hmat
-        trh = tr(Ih)
-        yhi = Ih * yi
-        gcvvec[j] = (transpose(yhi) * yhi) * nr/(trh^2)
-    end
+    Dmlam = lam1*Dm
+    Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
+    Ini = diagm(0 => ones(nr))
+    Ih = Ini - Hmat
+    trh = tr(Ih)
+    yhi = Ih * yi
+    gcvvalue = (transpose(yhi) * yhi) * nr/(trh^2)
 
-    return gcvvec
+    return gcvvalue
 end
 
 
@@ -201,6 +208,7 @@ function initial4(indexy::Vector, tm::Vector, y::Vector,
     uniqtm = unique(tm)
     Bmi = orthogonalBsplines(uniqtm,knots)
     BtB = transpose(Bmi) * Bmi
+    nlam = length(lamv)
 
     p = size(Bmt, 2)
     uindex = unique(indexy) # unique id for each obs
@@ -217,13 +225,24 @@ function initial4(indexy::Vector, tm::Vector, y::Vector,
     Dm = transpose(Dm2) * Dm2
 
 
-    betam = zeros(n,p)
 
+
+    bicvec = zeros(nlam)
+    for j = 1:nlam
+        bicvaluei = 0
+        for i = 1:n
+            indexi = indexy.==uindex[i]
+            yi = y[indexi]
+            bicvaluei = bicvaluei + bici(yi, Bmi, Dm, nr, lamv[j])
+        end
+        bicvec[j] = bicvaluei
+    end
+
+    betam = zeros(n,p)
     for i = 1:n
         indexi = indexy.==uindex[i]
         yi = y[indexi]
-        bicvi = bici(yi, Bmi, Dm, nr, lamv)
-        betam[i,:] = inv(BtB + lamv[argmin(bicvi)]*Dm) * transpose(Bmi) * yi
+        betam[i,:] = inv(BtB + lamv[argmin(bicvec)]*Dm) * transpose(Bmi) * yi
     end
 
     return betam
@@ -233,20 +252,133 @@ end
 
 
 function bici(yi::Vector, Bmi::Array, Dm::Array,
-    nr::Int64,lamv::Vector)
+    nr::Int64,lam::Number)
 
+    Dmlam = lam*Dm
+    Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
+    Ini = diagm(0 => ones(nr))
+    Ih = Ini - Hmat
+    trh = tr(Hmat)
+    yhi = Ih * yi
+    bicvalue = log((transpose(yhi) * yhi)/nr)  +  trh * log(nr)/nr
+
+    return bicvalue
+end
+
+
+#### initial value based on gcv ###
+
+function initial5(indexy::Vector, tm::Vector, y::Vector,
+    knots::Vector; boundary::Vector = [0,1],
+    lamv::Vector = collect(range(0,10,step =1)))
+
+    ntotal = length(y)
+    Bmt = orthogonalBsplines(tm,knots)
+    uniqtm = unique(tm)
+    Bmi = orthogonalBsplines(uniqtm,knots)
+    BtB = transpose(Bmi) * Bmi
     nlam = length(lamv)
-    bicvec = zeros(nlam)
 
+    p = size(Bmt, 2)
+    uindex = unique(indexy) # unique id for each obs
+    n = length(uindex) # number of unique ids
+    nr = length(uniqtm)
+
+    Imp = diagm(0 => ones(p))
+
+
+    gcvvec = zeros(nlam)
     for j = 1:nlam
-        Dmlam = lamv[j]*Dm
-        Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
-        Ini = diagm(0 => ones(nr))
-        Ih = Ini - Hmat
-        trh = tr(Hmat)
-        yhi = Ih * yi
-        bicvec[j] = log((transpose(yhi) * yhi)/nr)  +  log(nr)/nr*(trh)
+        gcvvaluei = 0
+        for i = 1:n
+            indexi = indexy.==uindex[i]
+            yi = y[indexi]
+            gcvvaluei = gcvvaluei + gcvi5(yi, Bmi, Imp, nr, lamv[j])
+        end
+        gcvvec[j] = gcvvaluei
     end
 
-    return bicvec
+
+    betam = zeros(n,p)
+    for i = 1:n
+        indexi = indexy.==uindex[i]
+        yi = y[indexi]
+        betam[i,:] = inv(BtB + lamv[argmin(gcvvec)]*Imp) * transpose(Bmi) * yi
+    end
+
+    return betam
+end
+
+
+
+function gcvi5(yi::Vector, Bmi::Array, Imp::Array, nr::Int64,lam1::Number)
+
+
+    Dmlam = lam1*Imp
+    Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
+    Ini = diagm(0 => ones(nr))
+    Ih = Ini - Hmat
+    trh = tr(Ih)
+    yhi = Ih * yi
+    gcvvalue = (transpose(yhi) * yhi) * nr/(trh^2)
+
+    return gcvvalue
+end
+
+
+function initial6(indexy::Vector, tm::Vector, y::Vector,
+    knots::Vector; boundary::Vector = [0,1],
+    lamv::Vector = collect(range(0,10,step =1)))
+
+    ntotal = length(y)
+    Bmt = orthogonalBsplines(tm,knots)
+    uniqtm = unique(tm)
+    Bmi = orthogonalBsplines(uniqtm,knots)
+    BtB = transpose(Bmi) * Bmi
+    nlam = length(lamv)
+
+    p = size(Bmt, 2)
+    uindex = unique(indexy) # unique id for each obs
+    n = length(uindex) # number of unique ids
+    nr = length(uniqtm)
+
+    Imp = diagm(0 => ones(p))
+
+
+    bicvec = zeros(nlam)
+    for j = 1:nlam
+        bicvaluei = 0
+        for i = 1:n
+            indexi = indexy.==uindex[i]
+            yi = y[indexi]
+            bicvaluei = bicvaluei + bici6(yi, Bmi, Imp, nr, lamv[j])
+        end
+        bicvec[j] = bicvaluei
+    end
+
+    betam = zeros(n,p)
+    for i = 1:n
+        indexi = indexy.==uindex[i]
+        yi = y[indexi]
+        betam[i,:] = inv(BtB + lamv[argmin(bicvec)]*Imp) * transpose(Bmi) * yi
+    end
+
+    return betam
+end
+
+
+
+
+function bici6(yi::Vector, Bmi::Array, Imp::Array,
+    nr::Int64,lam1::Number)
+
+    Dmlam = lam1*Imp
+    Hmat = Bmi*inv(transpose(Bmi) * Bmi + Dmlam) * transpose(Bmi)
+    Ini = diagm(0 => ones(nr))
+    Ih = Ini - Hmat
+    trh = tr(Hmat)
+    yhi = Ih * yi
+    bicvalue = log((transpose(yhi) * yhi)/nr)  +  trh * log(nr)/nr
+
+    return bicvalue
 end
