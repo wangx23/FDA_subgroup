@@ -11,24 +11,37 @@ resultsim1lam0 = readdlm("../result/resultsim1lam0.csv",',')
 resultsim1lam2 = readdlm("../result/resultsim1lam2.csv",',')
 resultsim1lam5 = readdlm("../result/resultsim1lam5.csv",',')
 resultsim1lam10 = readdlm("../result/resultsim1lam10.csv",',')
+resultsim1init5 = readdlm("../result/resultsim1init5.csv",',')
 
 mean(resultsim1[:,2])
 mean(resultsim1lam0[:,2])
 mean(resultsim1lam2[:,2])
 mean(resultsim1lam5[:,2])
 mean(resultsim1lam10[:,2])
+mean(resultsim1init5[:,2])
+
+mean(resultsim1init5[:,6])
+mean(resultsim1lam10[:,6])
+
+
 
 resultsim12lam0 = readdlm("../result/resultsim12lam0.csv",',')
 resultsim12lam2 = readdlm("../result/resultsim12lam2.csv",',')
 resultsim12lam5 = readdlm("../result/resultsim12lam5.csv",',')
 resultsim12lam10 = readdlm("../result/resultsim12lam10.csv",',')
+resultsim12init5 = readdlm("../result/resultsim12init5.csv",',')
 
 mean(resultsim12lam0[:,2])
 mean(resultsim12lam2[:,2])
 mean(resultsim12lam5[:,2])
 mean(resultsim12lam10[:,2])
+mean(resultsim12init5[:,2])
 
-sum(resultsim12lam0[:,5].==1)
+
+
+mean(resultsim12lam0[:,5])
+mean(resultsim12init5[:,6])
+
 
 findall(resultsim1lam2[:,2].==0)
 findall(resultsim1lam2[:,6].==1)

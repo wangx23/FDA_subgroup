@@ -266,7 +266,7 @@ function bici(yi::Vector, Bmi::Array, Dm::Array,
 end
 
 
-#### initial value based on gcv ###
+#### initial value based on gcv penalty term is identiy matrix###
 
 function initial5(indexy::Vector, tm::Vector, y::Vector,
     knots::Vector; boundary::Vector = [0,1],
@@ -325,7 +325,7 @@ function gcvi5(yi::Vector, Bmi::Array, Imp::Array, nr::Int64,lam1::Number)
     return gcvvalue
 end
 
-
+### penalty matrix is identiy matrix ###
 function initial6(indexy::Vector, tm::Vector, y::Vector,
     knots::Vector; boundary::Vector = [0,1],
     lamv::Vector = collect(range(0,10,step =1)))

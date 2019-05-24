@@ -32,16 +32,9 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     alpm = reshape(est,p,ng)
 
     betam0 = initial2(indexy, tm, y, knots)
-    betam0bar = mapslices(mean, betam0,dims = 1)
-    Random.seed!(1256)
-    reskm = kmeans(transpose(betam0), K0; maxiter = 200)
-    groupkm = reskm.assignments
-    centerskm = reskm.centers
     Cm = zeros(p,p)
     for i=1:n
         cv = betam0[i,:] - alpm[:,group[i]]
-        #cv = betam0[i,:] - betam0bar[1,:]
-        #cv = betam0[i,:] - centerskm[:,groupkm[i]]
         Cm = Cm + cv * transpose(cv)/n
     end
 

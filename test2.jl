@@ -22,7 +22,7 @@ data = simdat(sig2, lamj, m = m, ncl = ncl,seed = 10)
 indexy = data.ind
 tm = data.time
 y = data.obs
-knots = collect(range(0,length = 5, stop = 1))[2:4]
+knots = collect(range(0,length = 7, stop = 1))[2:6]
 boundary = [0,1]
 maxiter = 1000
 P = 2
@@ -33,10 +33,14 @@ tolrel = 1e-2
 wt = ones(convert(Int,100*99/2))
 group = unique(data[:,1:2])[:,1]
 
-betam0 = initial2(indexy, tm, y, knots, lam = 10)
-lamv = collect(range(0,20,step=1))
+betam0 = initial2(indexy, tm, y, knots, lam = 0)
+lamv = collect(range(0,10,step=1))
 betam0v1 = initial3(indexy, tm, y, knots, lamv = lamv)
 betam0v2 = initial4(indexy, tm, y, knots, lamv = lamv)
+betam0v3 = initial(indexy,tm, y, knots, lam = 0.3)
+
+betam0v5 = initial5(indexy,tm, y, knots, lamv = lamv)
+betam0v6 = initial6(indexy,tm, y, knots, lamv = lamv)
 
 uniqtm = unique(tm)
 Bmt = orthogonalBsplines(tm, knots)
@@ -71,15 +75,15 @@ nlam = length(lamvec)
 BICvec1 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v2,lam = lamvec[l],
+        res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v6,lam = lamvec[l],
         K0 = 10,maxiter = 1000)
-        BICvec1[l,P] = BICem(res1l, 1.5)
+        BICvec1[l,P] = BICem(res1l)
     end
 end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0v2,lam = lamvec[20],
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0v6,lam = lamvec[16],
 K0=10, maxiter = 1000)
 group1 = getgroup(res1.deltam,100)
 randindex(group,group1)

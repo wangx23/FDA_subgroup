@@ -40,15 +40,42 @@ datp1 = datp1[datp1.AGE .!=80,:]
 indexy1 = datp1.AGE
 tm1 = standfun.(datp1.IYEAR, 1989, 2018)
 y1 = (datp1.PropObese .- mean(datp1.PropObese))./std(datp1.PropObese)
-knots = collect(range(0,length = 5, stop = 1))[2:4]
-betam01 = initial2(indexy1, tm1, y1, knots, lam = 10)
+knots1 = collect(range(0,length = 6, stop = 1))[2:5]
+betam01 = initial2(indexy1, tm1, y1, knots1, lam = 10)
+
+lamv = collect(range(0,10,step=1))
+betam01v5 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 
 wt1 = ones(convert(Int,62*61/2))
 
 res10 = GrInd(indexy1,tm1,y1,knots,2,wt1,betam01, lam  = 0.3, maxiter = 1000)
 
-res11 = GrFDA(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,maxiter = 1000)
+res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01v5,
+lam = 0.3,maxiter = 1000)
 group11 = getgroup(res11.deltam,62)
+
+
+lamvec = collect(range(0.15,0.45,step = 0.01))
+nlam = length(lamvec)
+
+BICvec11 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01v5,lam = lamvec[l],
+        K0 = 10,maxiter = 1000)
+        BICvec11[l,P] = BICem(res11l)
+    end
+end
+
+argmin(BICvec11)
+
+
+res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01v5,
+lam = lamvec[17],maxiter = 1000)
+
+group11 = getgroup(res11.deltam,62)
+
+
 
 res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,
 maxiter2 = 10, maxiter = 100)

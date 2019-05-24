@@ -40,19 +40,21 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     # initial values of parameters
     # calculate covariance matrix, since this is grid data
-    betam0bar = mapslices(mean, betam0,dims = 1)
     Cm = zeros(p,p)
     residual = zeros(ntotal)
     Random.seed!(1256)
     reskm = kmeans(transpose(betam0), K0; maxiter = 200)
     groupkm = reskm.assignments
     centerskm = reskm.centers
+
+    resf = refitFDA(indexy,tm,y,knots,groupkm, P, K0 = K0)
+    alpm = resf.alpm
+
     for i = 1:n
         indexi = indexy.== uindex[i]
-        residual[indexi] = y[indexi] - Bmt[indexi,:] * betam0[i,:]
-        #cv = betam0[i,:] - betam0bar[1,:]
-        #cv = betam0[i,:]  - fixbetam[i,:]
-        cv = betam0[i,:] - centerskm[:,groupkm[i]]
+        residual[indexi] = y[indexi] - Bmi * alpm[:,groupkm[i]]
+        #cv = betam0[i,:] - centerskm[:,groupkm[i]]
+        cv = betam0[i,:] - alpm[:,groupkm[i]]
         Cm = Cm + cv * transpose(cv)/n
     end
 
@@ -63,7 +65,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     sig2 = mean(residual.^2)
 
     ## initial values
-    betam = transpose(centerskm[:,groupkm])
+    #betam = transpose(centerskm[:,groupkm])
+    betam = transpose(resf.alpm[:,groupkm])
     deltam = zeros(p, npair)
     deltamold = zeros(p, npair)
     betadiff = zeros(p, npair)
@@ -104,11 +107,8 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         ## expectation
         lamjold = lamj
         Laminv = diagm(0=> 1 ./lamj)
-
-
         Vi = inv(transpose(theta) * BtB * theta ./sig2
          + Laminv)
-
         ysubm = reshape(y, lent, n) - Bmi * transpose(betam)
 
         for i = 1:n
