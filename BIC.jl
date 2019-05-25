@@ -9,7 +9,17 @@ p = npinf[2]
 group = getgroup(obj.deltam,n)
 ng = size(unique(group))[1]
 Cn = c0 * log(log(n*p))
-value = obj.lent*log(obj.sig2) + Cn*log(n)*(ng*p)/n
+value = n*obj.lent*log(obj.sig2) + Cn*log(n)*(ng*p)
+return value
+end
+
+function BICind0(obj::NamedTuple)
+npinf = size(obj.beta)
+n = npinf[1]
+p = npinf[2]
+group = getgroup(obj.deltam,n)
+ng = size(unique(group))[1]
+value = n*log(obj.sig2) + log(n)*(ng*p)
 return value
 end
 
@@ -34,7 +44,7 @@ Cn = c0 * log(log(n*p))
 #Cn*log(n)*(ng*p + P*p - nconstraints)
 
 value = n *obj.lent * log(obj.residsum/n/obj.lent) +
-Cn*log(n)*(ng*p) + n * (P*p - nconstraints)
+Cn*log(n)*(ng*p) + 2*n * (P*p - nconstraints)
 
 
 #value = n *obj.lent * log(obj.sig2) + Cn*log(n)*(ng*p)
@@ -128,6 +138,6 @@ function BICrefit(obj::NamedTuple)
     #log(n)*(ng*p)/n
 
     value = n*obj.lent * log(obj.residsum/n/obj.lent) +
-    n * (P*p - nconstraints)
+    2* n * (P*p - nconstraints)
 
 end
