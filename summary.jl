@@ -68,3 +68,12 @@ yi = y[1:50]
 Ini = diagm(0 => ones(50))
 yh = (Ini - Hmat) * yi
 transpose(yh) * yh/tr(Ini - Hmat)
+
+
+
+resultsim3 = readdlm("../result/resultsim3.csv",',')
+mean(resultsim3[:,3])
+mean(resultsim3[:,7])
+
+mean(resultsim3[:,4])
+mean(resultsim3[:,8])

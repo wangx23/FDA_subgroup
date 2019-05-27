@@ -1,6 +1,6 @@
 ##### simulated data ###
 #### two eigenfunctions####
-## two groups
+## three groups
 using DataFrames
 using Random
 using StatsBase
