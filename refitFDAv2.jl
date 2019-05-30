@@ -1,8 +1,9 @@
 ##### If group information is given refit the model ####
+# Pspline
 include("header.jl")
 
-function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::Vector,
-    P::Int; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-4)
+function refitFDAv2(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::Vector,
+    P::Int; boundary::Vector = [0,1], lam1 = 0.5, maxiter::Int = 1000, tol = 1e-4)
 
     Bmt = orthogonalBsplines(tm, knots)
     uniqtm = unique(tm)
@@ -26,9 +27,21 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         Ux[indexi, (groupi - 1)*p + 1 : groupi*p] = Bmt[indexi,:]
     end
 
+    Dm1 = zeros(p-1, p)
+    for j=1:(p-1)
+        Dm1[j,j] = 1
+        Dm1[j,j+1] = -1
+    end
+
+    Dm2 = Dm1[1:p-2,1:p-1] * Dm1
+    Dm = transpose(Dm2) * Dm2
+
+    Dd = kron(Diagonal(ones(ng)),Dm)
+    Dd1 = lam1 * Dd
+
     # initial value of beta
 
-    est = inv(transpose(Ux)*Ux)*transpose(Ux)*y
+    est = inv(transpose(Ux)*Ux + Dd1)*transpose(Ux)*y
     alpm = reshape(est,p,ng)
 
     betam0 = initial2(indexy, tm, y, knots)
@@ -110,7 +123,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         end
 
 
-        est = inv(transpose(Ux)*Ux)*transpose(Ux)*( y - Btheta)
+        est = inv(transpose(Ux)*Ux + Dd1)*transpose(Ux)*( y - Btheta)
         alpm = reshape(est, p, ng)
 
         niteration += 1

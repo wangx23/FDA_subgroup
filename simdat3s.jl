@@ -22,9 +22,11 @@ end
 
 
 #x0 = collect(range(0,1,length = 100))
-#plot(x0, m31.(x0))
+#plot(1:m, mean1)
+#plot!(1:m, data.obs[data.ind.==2])
 #plot!(x0, m32.(x0))
 #plot!(x0, m33.(x0))
+
 
 ## eigenfunctions
 function psi2(x::Number)
@@ -38,21 +40,30 @@ end
 
 
 ## equal spaced grid
-## ncl: number of observations for each cluster, assume same now.
 ## the output is a tuple, first element is about data column information,
 ## the second element is about the data, the third element is the group information
-function simdat3(sig2::Number, lamj::Vector;
-    m::Int = 20, ncl::Int = 50, seed::Int = 2228)
+## number of time series
+function simdat3s(sig2::Number, lamj::Vector, group::Vector;
+    m::Int = 20, seed::Int = 2228)
 
     Random.seed!(seed)
     tvec = collect(range(0, length = m + 2, stop = 1))[2:end-1]
 
-    ntotal = 3 * ncl * m
+    n = length(group)
+    ntotal = n*m
 
-    data = DataFrame(group = repeat(1:3,inner = m*ncl),
-             ind = repeat(1:(3*ncl),inner = m),
-             time = repeat(tvec, ncl*3),
+    ng1 = sum(group.==1)
+    ng2 = sum(group.==2)
+    ng3 = sum(group.==3)
+
+    data = DataFrame(group = repeat(group,inner = m),
+             ind = repeat(1:n,inner = m),
+             time = repeat(tvec, n),
              obs = zeros(ntotal))
+
+    id1 = unique(data.ind[data.group.==1])
+    id2 = unique(data.ind[data.group.==2])
+    id3 = unique(data.ind[data.group.==3])
 
     rande = sqrt(sig2) * randn(ntotal)
 
@@ -61,31 +72,25 @@ function simdat3(sig2::Number, lamj::Vector;
     mean3 = m33.(tvec)
 
     ### group 1
-    for i= 1:ncl
-        #vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
-        #        sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+    for i= 1:ng1
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
-        data.obs[((i-1)*m + 1):(i*m)] = mean1 + vi
+        data.obs[((data.group.==1) .& (data.ind .== id1[i]))[:,1]] = mean1 + vi
     end
 
     ### group 2
-    for i = (ncl+1):(2*ncl)
-        #vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
-        #        sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+    for i = 1:ng2
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
-        data.obs[((i-1)*m + 1):(i*m)] = mean2 + vi
+        data.obs[((data.group.==2) .& (data.ind .== id2[i]))[:,1]] = mean2 + vi
     end
 
     ### group 3
 
-    for i = (2*ncl+1):(3*ncl)
-        #vi = sqrt(lamj[1])*randn(1)[1] .+ sqrt(lamj[2])*randn(1)[1]*psi2.(tvec) +
-        #        sqrt(lamj[3])*randn(1)[1]*psi3.(tvec)
+    for i = 1:ng3
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
-        data.obs[((i-1)*m + 1):(i*m)] = mean3 + vi
+        data.obs[((data.group.==3) .& (data.ind .== id3[i]))[:,1]] = mean3 + vi
     end
 
 

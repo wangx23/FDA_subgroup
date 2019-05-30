@@ -1,14 +1,16 @@
 ### Find sub groups in FDA ####
+### this algorithm is almost the same as GrFDA
+## the only difference is Pspline is considered
 # tm: observation time
 # y: observation
 # indexy: observation id
 # P is the number of dimension of eigenfunctions
 include("header.jl")
+include("refitFDAv2.jl")
 
-
-function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
+function GrFDAv2(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int, wt::Vector, betam0::Array;
-    lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
+    lam1::Number = 0.5, lam2::Number = 0.5, nu::Number = 1, gam::Number = 3,
     boundary::Vector = [0,1], K0 = 20, maxiter::Int = 1000,
     tolabs::Number = 1e-4, tolrel::Number = 1e-2)
 
@@ -38,6 +40,23 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         end
     end
 
+## psline penalty
+    Dm1 = zeros(p-1, p)
+    for j=1:(p-1)
+        Dm1[j,j] = 1
+        Dm1[j,j+1] = -1
+    end
+
+    Dm2 = Dm1[1:p-2,1:p-1] * Dm1
+    Dm = transpose(Dm2) * Dm2
+
+    inv(transpose(Bmi)* Bmi + 1.5 * Dm)
+
+    temp = vcat(Bmi, sqrt(1.5)*Dm2)
+
+    inv(transpose(temp) * temp) - inv(transpose(Bmi)* Bmi + 1.5 * Dm)
+
+
     # initial values of parameters
     # calculate covariance matrix, since this is grid data
     Cm = zeros(p,p)
@@ -47,13 +66,12 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     groupkm = reskm.assignments
     centerskm = reskm.centers
 
-    resf = refitFDA(indexy,tm,y,knots,groupkm, P)
+    resf = refitFDAv2(indexy,tm,y,knots,groupkm, P, lam1 = lam1)
     alpm = resf.alpm
 
     for i = 1:n
         indexi = indexy.== uindex[i]
         residual[indexi] = y[indexi] - Bmi * alpm[:,groupkm[i]]
-        #cv = betam0[i,:] - centerskm[:,groupkm[i]]
         cv = betam0[i,:] - alpm[:,groupkm[i]]
         Cm = Cm + cv * transpose(cv)/n
     end
@@ -81,7 +99,9 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     residv = zeros(n)
     #Vii = zeros(P,P)
 
-    XtXinv = inverseb(indexy,Bmt,nu*lent, p, n, np)
+    XtXinv = inversebv2(indexy,Bmt,nu*lent, p, n, np, Dm2, lam1)
+
+
     Xty = zeros(np)
     for i = 1:n
         indexi = indexy.==uindex[i]
@@ -164,7 +184,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
         # update deltam
         for i = 1:npair
-            deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
+            deltam[:,i] = scad(deltam[:,i], wt[i]*lam2, nu,gam)
         end
         vm =  vm + nu * (betadiff - deltam)
 
