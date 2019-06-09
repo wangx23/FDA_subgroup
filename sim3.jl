@@ -24,7 +24,7 @@ using Distributed
     indexy = data.ind
     tm = data.time
     y = data.obs
-    knots = collect(range(0,length = 7, stop = 1))[2:6]
+    knots = collect(range(0,length = 8, stop = 1))[2:7]
 
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
@@ -44,7 +44,7 @@ using Distributed
     BICvec0 = zeros(nlam)
     for l = 1:nlam
         res0l = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[l])
-        BICvec0[l] = BICind(res0l,1)
+        BICvec0[l] = BICind2(res0l,1)
     end
 
     index0 = argmin(BICvec0)
@@ -77,7 +77,7 @@ using Distributed
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
             K0 = 12,maxiter = 1000)
-            BICvec1[l,P] = BICem(res1l,1)
+            BICvec1[l,P] = BICem2(res1l,1)
         end
     end
 
@@ -99,7 +99,7 @@ using Distributed
     for l = 1:nlam
         res3l = GrFDAproxy(indexy, tm, y, knots, wt, betam0v5,
         lam = lamvec[l], maxiter =1000)
-        BICvec3[l] = BICproxy(res3l,1)
+        BICvec3[l] = BICproxy2(res3l,1)
     end
 
     index3 = argmin(BICvec3)

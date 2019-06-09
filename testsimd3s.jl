@@ -119,3 +119,12 @@ for l = 1:nlam
     end
 end
 end
+
+argmin(BICvec2)
+wt2 = exp.(alp2[1] .* (1 .- ordermat[findall(tril(ordermat).!=0)]))
+res2 = GrFDA(indexy3,tm3,y3,knots3,2,wt2,betam03v5,lam = lamvec[16],
+K0=12,maxiter = 1000)
+
+
+group2 = getgroup(res2.deltam,144)
+randindex(group,group2)

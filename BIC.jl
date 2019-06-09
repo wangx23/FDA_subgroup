@@ -13,6 +13,18 @@ value = n*obj.lent*log(obj.sig2) + Cn*log(n)*(ng*p)
 return value
 end
 
+function BICind2(obj::NamedTuple, c0::Number)
+npinf = size(obj.beta)
+n = npinf[1]
+p = npinf[2]
+group = getgroup(obj.deltam,n)
+ng = size(unique(group))[1]
+Cn = c0 * log(log(n*p))
+value = n*obj.lent*log(obj.sig2) + Cn*log(n*obj.lent)*(ng*p)
+return value
+end
+
+
 function BICind0(obj::NamedTuple)
 npinf = size(obj.beta)
 n = npinf[1]
@@ -56,7 +68,7 @@ return value
 end
 
 
-function BICem2(obj::NamedTuple)
+function BICem1(obj::NamedTuple, c0::Number = 1)
 npinf = size(obj.beta)
 n = npinf[1]
 p = npinf[2]
@@ -66,12 +78,28 @@ nconstraints = P*(P+1)/2
 
 group = getgroup(obj.deltam,n)
 ng = size(unique(group))[1]
-Cn =  log(n*p)
+Cn = c0 * log(log(n*p))
+
+value = log(obj.residsum/n/obj.lent) +
+Cn*log(n)*(ng*p + P*p - nconstraints)/n
+return value
+end
 
 
-value = n *obj.lent * log(obj.residsum/n/obj.lent) +
-Cn*log(n)*(ng*p) + n * (P*p - nconstraints)
+function BICem2(obj::NamedTuple, c0::Number = 1)
+npinf = size(obj.beta)
+n = npinf[1]
+p = npinf[2]
 
+P = size(obj.theta)[2]
+nconstraints = P*(P+1)/2
+
+group = getgroup(obj.deltam,n)
+ng = size(unique(group))[1]
+Cn =  c0 * log(log(n*p))
+
+value = value = n *obj.lent * log(obj.residsum/n/obj.lent) +
+Cn*log(n*obj.lent)*(ng*p) + 2*n * (P*p - nconstraints)
 
 return value
 end
@@ -116,6 +144,23 @@ function BICproxy(obj::NamedTuple, c0::Number)
 
     value = n * obj.lent * log(obj.residsum/obj.lent/n) +
     Cn*log(n)*(ng*p)
+
+    return value
+end
+
+
+function BICproxy2(obj::NamedTuple, c0::Number)
+    npinf = size(obj.beta)
+    n = npinf[1]
+    p = npinf[2]
+
+
+    group = getgroup(obj.deltam,n)
+    ng = size(unique(group))[1]
+    Cn = c0 * log(log(n*p))
+
+    value = n * obj.lent * log(obj.residsum/obj.lent/n) +
+    Cn*log(n*obj.lent)*(ng*p)
 
     return value
 end

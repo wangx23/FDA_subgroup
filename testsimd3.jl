@@ -17,7 +17,7 @@ ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data3 = simdat3(sig2, lamj, m = m, ncl = ncl,seed = 10)
+data3 = simdat3(sig2, lamj, m = m, ncl = ncl,seed = 6)
 
 indexy3 = data3.ind
 tm3 = data3.time
@@ -38,7 +38,7 @@ lamv = collect(range(0,10,step=0.5))
 betam03v5 = initial5(indexy3,tm3, y3, knots3, lamv = lamv)
 
 
-lamvec = collect(range(0.15,0.4,step = 0.01))
+lamvec = collect(range(0.2,0.5,step = 0.01))
 nlam = length(lamvec)
 
 
@@ -53,7 +53,7 @@ tr(Bmi3* inv(transpose(Bmi3) * Bmi3) * transpose(Bmi3))
 BICvec0 = zeros(nlam)
 for l = 1:nlam
     res0l = GrInd(indexy3, tm3, y3, knots3, wt, betam03v5, lam = lamvec[l])
-    BICvec0[l] = BICind(res0l,1)
+    BICvec0[l] = BICind2(res0l,1)
 end
 
 argmin(BICvec0)
@@ -69,13 +69,13 @@ for l = 1:nlam
     for P = 1:3
         res1l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
         K0=12,maxiter = 1000)
-        BICvec1[l,P] = BICem(res1l)
+        BICvec1[l,P] = BICem2(res1l)
     end
 end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[14],
+res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[15],
 K0=12,maxiter = 1000)
 
 group1 = getgroup(res1.deltam,150)

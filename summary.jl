@@ -77,3 +77,17 @@ mean(resultsim3[:,7])
 
 mean(resultsim3[:,4])
 mean(resultsim3[:,8])
+
+resultsim3s = readdlm("../result/resultsim3s.csv",',')
+mean(resultsim3s[:,1])
+mean(resultsim3s[:,2])
+
+mean(resultsim3s[:,3])
+mean(resultsim3s[:,4])
+
+resultsim3s30 = readdlm("../result/resultsim3s30.csv",',')
+mean(resultsim3s30[:,1])
+mean(resultsim3s30[:,2])
+
+mean(resultsim3s30[:,3])
+mean(resultsim3s30[:,4])
