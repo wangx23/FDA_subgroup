@@ -12,18 +12,17 @@ include("BIC.jl")
 
 
 
-m = 50
+m = 20
 ncl = 50
 sig2 = 0.1
 lamj = [0.1,0.2]
 
-data3 = simdat3(sig2, lamj, m = m, ncl = ncl,seed = 6)
-CSV.write("data3.csv",data3)
+data3 = simdat3(sig2, lamj, m = m, ncl = ncl,seed = 10)
 
 indexy3 = data3.ind
 tm3 = data3.time
 y3 = data3.obs
-knots3 = collect(range(0,length = 8, stop = 1))[2:7]
+knots3 = collect(range(0,length = 7, stop = 1))[2:6]
 boundary = [0,1]
 maxiter = 1000
 P = 2
@@ -38,14 +37,12 @@ lamv = collect(range(0,20,step=0.5))
 
 betam03v5 = initial5(indexy3,tm3, y3, knots3, lamv = lamv)
 
-refit0 = refitFDA(indexy3, tm3, y3, knots3, group, 2)
-
 
 lamvec = collect(range(0.2,0.5,step = 0.01))
 nlam = length(lamvec)
 
 
-uniqtm3 = unique(tm3)
+uniqtm3 = unique(tm)
 Bmi3 = orthogonalBsplines(uniqtm3,knots)
 
 tr(Bmi3* inv(transpose(Bmi3) * Bmi3) * transpose(Bmi3))
@@ -60,7 +57,7 @@ for l = 1:nlam
 end
 
 argmin(BICvec0)
-res0 = GrInd(indexy3, tm3, y3, knots3, wt, betam03v5, lam = lamvec[1])
+res0 = GrInd(indexy3, tm3, y3, knots3, wt, betam03v5, lam = lamvec[10])
 group0 = getgroup(res0.deltam,150)
 randindex(group,group0)
 
@@ -78,8 +75,22 @@ end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[15],
+Cn =   log(n*p)
+
+n *res12.lent * log(res12.residsum/n/res12.lent) +
+Cn*log(n*res12.lent)*(9*p) + 2*n * (1*p - 1)
+
+
+res12 = GrFDA(indexy3,tm3,y3,knots3,1,wt,betam03v5,lam = lamvec[1],
 K0=12,maxiter = 1000)
+unique(getgroup(res12.deltam,150))
+
+res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+
+n *res1.lent * log(res1.residsum/n/res1.lent) +
+Cn*log(n*res1.lent)*(3*p) + 2*n * (2*p - 3)
+
 
 group1 = getgroup(res1.deltam,150)
 randindex(group,group1)
@@ -127,31 +138,3 @@ for P = 1:3
 end
 
 refit3 = refitFDA(indexy, tm, y, knots, group3, 2)
-
-
-refit0 = refitFDA(indexy, tm, y, knots, group3, 2)
-
-
-
-
-
-indexy = data3.ind
-tm = data3.time
-y = data3.obs
-knots = collect(range(0,length = 8, stop = 1))[2:7]
-boundary = [0,1]
-maxiter = 1000
-P = 2
-nu = 1
-gam = 3
-tolabs = 1e-4
-tolrel = 1e-2
-wt = ones(convert(Int,150*149/2))
-group = unique(data3[:,1:2])[:,1]
-
-lamv = collect(range(0,20,step=0.5))
-
-betam03v5 = initial5(indexy3,tm3, y3, knots3, lamv = lamv)
-
-refit0 = refitFDA(indexy3, tm3, y3, knots3, group, 2)
-refit1 = refitFDA(indexy3, tm3, y3, knots3, group, 2)

@@ -47,25 +47,14 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     groupkm = reskm.assignments
     centerskm = reskm.centers
 
-    resf = refitFDA(indexy,tm,y,knots,groupkm, P)
-    alpm = resf.alpm
+    resf = refitFDA(indexy,tm,y,knots,groupkm, P, betam0)
 
-    for i = 1:n
-        indexi = indexy.== uindex[i]
-        residual[indexi] = y[indexi] - Bmi * alpm[:,groupkm[i]]
-        #cv = betam0[i,:] - centerskm[:,groupkm[i]]
-        cv = betam0[i,:] - alpm[:,groupkm[i]]
-        Cm = Cm + cv * transpose(cv)/n
-    end
+    lamj = resf.lamj
+    theta = resf.theta
+    sig2 = resf.sig2
 
-    decomp = eigen(Cm)
-    lamj = decomp.values[end - P + 1:end]
-    theta = decomp.vectors[:,end- P+ 1:end]
-
-    sig2 = mean(residual.^2)
 
     ## initial values
-    #betam = transpose(centerskm[:,groupkm])
     betam = transpose(resf.alpm[:,groupkm])
     deltam = zeros(p, npair)
     deltamold = zeros(p, npair)
@@ -103,6 +92,9 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     BtB = transpose(Bmi) * Bmi
 
 
+    temp1 = zeros(p,1)
+
+
     for m = 1:maxiter
         ## expectation
         lamjold = lamj
@@ -111,12 +103,14 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
          + Laminv)
         ysubm = reshape(y, lent, n) - Bmi * transpose(betam)
 
+        fill!(Sigma,0.0)
+
         for i = 1:n
             Bty = transpose(Bmi) * ysubm[:,i]
             mi = 1/sig2 .* Vi * transpose(theta) * Bty
-            mhat[i,:] = mi
+            mhat[i,:] .= mi
             #postE[i,:] = mi.^2 + diag(Vi)
-            Sigma = Sigma +  mi * transpose(mi) + Vi
+            Sigma .= Sigma .+  mi * transpose(mi) .+ Vi
 
             # for updating sig2
             residv[i] = sum((ysubm[:,i] - Bmi *theta * mi).^2) +
@@ -126,12 +120,12 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         for j = 1:P
             InvE = BtB .* (sum(mhat[:,j].^2) + n*Vi[j,j])
 
-            temp = zeros(p,1)
+            fill!(temp1,0.0)
             for j1 = (1:P)[1:P .!=j]
-                temp = temp + theta[:,j1] .* sum((mhat[:,j1].*mhat[:,j] .+ Vi[j1,j]))
+                temp1 .= temp1 .+ theta[:,j1] .* sum((mhat[:,j1].*mhat[:,j] .+ Vi[j1,j]))
             end
 
-            BtyE = transpose(Bmi) * (ysubm * mhat[:,j])  - BtB * temp
+            BtyE = transpose(Bmi) * (ysubm * mhat[:,j])  - BtB * temp1
 
             theta[:,j] = inv(InvE) * BtyE
         end
@@ -139,7 +133,6 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
         # update sig2
         sig2 = sum(residv)/ntotal
-
 
         # update theta and lamj
         Sigma = Sigma ./n
@@ -166,7 +159,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         for i = 1:npair
             deltam[:,i] = scad(deltam[:,i], wt[i]*lam, nu,gam)
         end
-        vm =  vm + nu * (betadiff - deltam)
+        vm .+= nu * (betadiff - deltam)
 
         normbd[1] = norm(betadiff)
         normbd[2] = norm(deltam)

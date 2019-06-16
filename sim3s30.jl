@@ -50,12 +50,14 @@ using Distributed
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
 
-    resor = refitFDA(indexy,tm,y,knots,group,2)
+    betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
+
+    resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
     lamv = collect(range(0,20,step=0.5))
-    betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
+
 
     lamvec = collect(range(0.2,0.5,step = 0.01))
     nlam = length(lamvec)
@@ -73,7 +75,7 @@ using Distributed
 
     index1 = argmin(BICvec1)
 
-    res1 = GrFDA(indexy,tm,y,knots,index1[2],wt2,betam0v5,
+    res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
     K0=12,maxiter = 1000)
     group1 = getgroup(res1.deltam,nobstotal)

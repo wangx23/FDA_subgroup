@@ -9,9 +9,9 @@
 using Distributed
 
 
-@everywhere function sim3s20(seed::Int64)
+@everywhere function sim3s15(seed::Int64)
 
-    m = 20
+    m = 15
     sig2 = 0.1
     lamj = [0.1,0.2]
 
@@ -128,5 +128,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s20 = pmap(sim3s20, 1:100)
-writedlm("resultsim3s20.csv", resultsim3s20, ',')
+resultsim3s15 = pmap(sim3s15, 1:100)
+writedlm("resultsim3s15.csv", resultsim3s15, ',')

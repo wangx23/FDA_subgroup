@@ -51,13 +51,14 @@ using Distributed
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
+    betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
 
-    resor = refitFDA(indexy,tm,y,knots,group,2)
+    resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
     lamv = collect(range(0,10,step=0.5))
-    betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
+
 
     lamvec = collect(range(0.15,0.4,step = 0.01))
     nlam = length(lamvec)

@@ -9,9 +9,9 @@
 using Distributed
 
 
-@everywhere function sim3s20(seed::Int64)
+@everywhere function sim3s10(seed::Int64)
 
-    m = 20
+    m = 10
     sig2 = 0.1
     lamj = [0.1,0.2]
 
@@ -44,7 +44,7 @@ using Distributed
     indexy = data.ind
     tm = data.time
     y = data.obs
-    knots = collect(range(0,length = 7, stop = 1))[2:6]
+    knots = collect(range(0,length = 5, stop = 1))[2:4]
 
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
@@ -128,5 +128,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s20 = pmap(sim3s20, 1:100)
-writedlm("resultsim3s20.csv", resultsim3s20, ',')
+resultsim3s10 = pmap(sim3s10, 1:100)
+writedlm("resultsim3s10.csv", resultsim3s10, ',')

@@ -2,7 +2,7 @@
 include("header.jl")
 
 function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::Vector,
-    P::Int; boundary::Vector = [0,1], maxiter::Int = 1000, tol = 1e-4)
+    P::Int, betam0::Array; boundary::Vector = [0,1], maxiter::Int = 50, tol = 1e-4)
 
     Bmt = orthogonalBsplines(tm, knots)
     uniqtm = unique(tm)
@@ -31,7 +31,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     est = inv(transpose(Ux)*Ux)*transpose(Ux)*y
     alpm = reshape(est,p,ng)
 
-    betam0 = initial2(indexy, tm, y, knots)
+    #betam0 = initial2(indexy, tm, y, knots)
     Cm = zeros(p,p)
     for i=1:n
         cv = betam0[i,:] - alpm[:,group[i]]
@@ -45,17 +45,25 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     sig2 = mean((y - Ux * est).^2)
 
     mhat = zeros(n,P)
-    Sigma = zeros(P,P)
     InvE = zeros(p,p,P)
     BtyE = zeros(p,P)
     residv = zeros(n)
     Btheta = zeros(ntotal)
+    Sigma = zeros(P,P)
 
     niteration = 0
     lamjold = lamj
+    thetaold = theta
+    sig2old = sig2
+
+    normvalue = 1
 
     for m = 1:maxiter
+
         lamjold = lamj
+        thetaold = theta
+        sig2old = sig2
+
         Laminv = diagm(0=> 1 ./lamj)
 
         Vi = inv(transpose(theta) * BtB * theta ./sig2
@@ -63,13 +71,15 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
          ysubm = reshape(y, lent, n) - Bmi * alpm[:,group]
 
+         fill!(Sigma,0.0)
+
         for i = 1:n
             indexi = indexy .== uindex[i]
             Bty = transpose(Bmi) * (y[indexi] - Bmi * alpm[:,group[i]])
 
              mi = 1/sig2 .* Vi * transpose(theta) * Bty
              mhat[i,:] = mi
-             Sigma = Sigma +  mi * transpose(mi) + Vi
+             Sigma .= Sigma .+  mi * transpose(mi) .+ Vi
         # for updating sig2
             residv[i] = sum((y[indexi] - Bmi * alpm[:,group[i]] - Bmi *theta * mi).^2) +
             tr(Bmi * theta * Vi * transpose(theta) * transpose(Bmi))
@@ -115,7 +125,11 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
         niteration += 1
 
-        if norm(lamjold - lamj) <= tol
+        normvalue = sqrt(norm(lamjold -lamj)^2 + norm(thetaold - theta)^2 +
+        norm(sig2old - sig2)^2)
+
+
+        if normvalue <= tol
             break
         end
     end
@@ -136,8 +150,8 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     end
 
     res = (index = uindex, lent = length(unique(tm)), sig2 = sig2, theta = theta, alpm = alpm,
-    lamj = lamj, lamjold = lamjold, residsum = residsum,
-     niteration = niteration, flag = flag)
+    lamj = lamj, lamjold = lamjold, thetaold = thetaold, sig2old = sig2old,  normvalue = normvalue,
+    residsum = residsum, niteration = niteration, flag = flag)
 
     return res
 end

@@ -98,8 +98,8 @@ group = getgroup(obj.deltam,n)
 ng = size(unique(group))[1]
 Cn =  c0 * log(log(n*p))
 
-value = value = n *obj.lent * log(obj.residsum/n/obj.lent) +
-Cn*log(n*obj.lent)*(ng*p) + 2*n * (P*p - nconstraints)
+value  = n *obj.lent * log(obj.residsum/n/obj.lent) +
+Cn*log(n*obj.lent)*(ng*p) + n * (P*p - nconstraints)
 
 return value
 end

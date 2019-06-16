@@ -12,9 +12,9 @@
 using Distributed
 
 
-@everywhere function sim3(seed)
+@everywhere function sim3m10(seed::Int64)
 
-    m = 50
+    m = 10
     ncl = 50
     sig2 = 0.1
     lamj = [0.1,0.2]
@@ -24,7 +24,7 @@ using Distributed
     indexy = data.ind
     tm = data.time
     y = data.obs
-    knots = collect(range(0,length = 8, stop = 1))[2:7]
+    knots = collect(range(0,length = 5, stop = 1))[2:4]
 
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
@@ -37,6 +37,8 @@ using Distributed
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
     lamv = collect(range(0,20,step=0.5))
+
+
     lamvec = collect(range(0.2,0.5,step = 0.01))
     nlam = length(lamvec)
 
@@ -56,8 +58,9 @@ using Distributed
     ari0 = randindex(group,group0)[1]
     norm0 = norm(res0.beta - betaor)
 
-    t1 = Dates.now()
 
+
+    t1 = Dates.now()
     index01 = argmin(BICvec01)
     res01 = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[index01])
     group01 = getgroup(res01.deltam,nobstotal)
@@ -120,6 +123,8 @@ using Distributed
     ts2 = round(t3 - t2, Dates.Second)
     ts3 = round(t4 - t3, Dates.Second)
 
+
+
     resvec = [ari0, ari01, ari1, ari3, ng0, ng01, ng1, ng3,
     norm0, norm01, norm1, norm3,
     estpc1, estpc3, ts0, ts2, ts3]
@@ -129,5 +134,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3 = pmap(sim3, 1:100)
-writedlm("resultsim3.csv", resultsim3, ',')
+resultsim3m10 = pmap(sim3m10, 1:100)
+writedlm("resultsim3m10.csv", resultsim3m10, ',')

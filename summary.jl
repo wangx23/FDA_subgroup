@@ -75,8 +75,54 @@ resultsim3 = readdlm("../result/resultsim3.csv",',')
 mean(resultsim3[:,3])
 mean(resultsim3[:,7])
 
-mean(resultsim3[:,4])
+mean(resultsim3[:,1])
 mean(resultsim3[:,8])
+
+resultsim3m20 = readdlm("../result/resultsim3m20.csv",',')
+
+mean(resultsim3m20[:,3])
+mean(resultsim3m20[:,7])
+
+mean(resultsim3m20[:,1])
+mean(resultsim3m20[:,5])
+
+resultsim3m20ncl100 = readdlm("../result/resultsim3m20ncl100.csv",',')
+
+mean(resultsim3m20ncl100[:,1])
+mean(resultsim3m20ncl100[:,3])
+
+mean(resultsim3m20ncl100[:,4])
+mean(resultsim3m20ncl100[:,6])
+
+resultsim3m15 = readdlm("../result/resultsim3m15.csv",',')
+
+mean(resultsim3m15[:,3])
+mean(resultsim3m15[:,7])
+
+mean(resultsim3m15[:,1])
+mean(resultsim3m15[:,5])
+
+
+resultsim3m10 = readdlm("../result/resultsim3m10.csv",',')
+
+mean(resultsim3m10[:,3])
+mean(resultsim3m10[:,7])
+
+mean(resultsim3m10[:,1])
+mean(resultsim3m10[:,5])
+
+
+resultsim3m10v2 = readdlm("../result/resultsim3m10v2.csv",',')
+
+mean(resultsim3m10v2[:,3])
+mean(resultsim3m10v2[:,7])
+
+mean(resultsim3m10v2[:,1])
+mean(resultsim3m10v2[:,5])
+
+
+resultsim3m20ncl100 = readdlm("../result/resultsim3m20ncl100.csv",',')
+
 
 resultsim3s = readdlm("../result/resultsim3s.csv",',')
 mean(resultsim3s[:,1])
@@ -85,9 +131,34 @@ mean(resultsim3s[:,2])
 mean(resultsim3s[:,3])
 mean(resultsim3s[:,4])
 
+
+
 resultsim3s30 = readdlm("../result/resultsim3s30.csv",',')
 mean(resultsim3s30[:,1])
 mean(resultsim3s30[:,2])
 
 mean(resultsim3s30[:,3])
 mean(resultsim3s30[:,4])
+
+resultsim3s20 = readdlm("../result/resultsim3s20.csv",',')
+mean(resultsim3s20[:,1])
+mean(resultsim3s20[:,2])
+
+mean(resultsim3s20[:,3])
+mean(resultsim3s20[:,4])
+
+
+resultsim3s15 = readdlm("../result/resultsim3s15.csv",',')
+mean(resultsim3s15[:,1])
+mean(resultsim3s15[:,2])
+
+mean(resultsim3s15[:,3])
+mean(resultsim3s15[:,4])
+
+
+resultsim3s10 = readdlm("../result/resultsim3s10.csv",',')
+mean(resultsim3s10[:,1])
+mean(resultsim3s10[:,2])
+
+mean(resultsim3s10[:,3])
+mean(resultsim3s10[:,4])
