@@ -49,13 +49,13 @@ using Distributed
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
+
+    #betam0 = initial2(indexy, tm, y, knots, lam = 5)
+    lamv = collect(range(0,20,step=0.5))
     betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
 
     resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
-
-    #betam0 = initial2(indexy, tm, y, knots, lam = 5)
-    lamv = collect(range(0,20,step=0.5))
 
 
     lamvec = collect(range(0.2,0.5,step = 0.01))
@@ -80,7 +80,7 @@ using Distributed
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
-    norm1 = norm(res1.beta - betaor)
+    norm1 = norm(res1.betaest - betaor)
     estpc1 = index1[2]
 
 
@@ -117,7 +117,7 @@ using Distributed
     group2 = getgroup(res2.deltam,nobstotal)
     ng2 = size(unique(group2))[1]
     ari2 = randindex(group,group2)[1]
-    norm2 = norm(res2.beta - betaor)
+    norm2 = norm(res2.betaest - betaor)
     estpc2 = index2[2]
 
     resvec = [ari1, ari2, ng1, ng2,norm1, norm2,
@@ -129,4 +129,4 @@ end
 
 using DelimitedFiles
 resultsim3s20 = pmap(sim3s20, 1:100)
-writedlm("resultsim3s20.csv", resultsim3s20, ',')
+writedlm("resultnew/resultsim3s20.csv", resultsim3s20, ',')

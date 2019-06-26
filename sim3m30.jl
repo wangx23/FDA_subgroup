@@ -12,10 +12,10 @@
 using Distributed
 
 
-@everywhere function sim3m20ncl100(seed)
+@everywhere function sim3m30(seed::Int64)
 
-    m = 20
-    ncl = 100
+    m = 30
+    ncl = 50
     sig2 = 0.1
     lamj = [0.1,0.2]
 
@@ -29,14 +29,14 @@ using Distributed
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
+
+
+    #betam0 = initial2(indexy, tm, y, knots, lam = 5)
+    lamv = collect(range(0,20,step=0.5))
     betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
 
     resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
-
-    #betam0 = initial2(indexy, tm, y, knots, lam = 5)
-    lamv = collect(range(0,20,step=0.5))
-
 
     lamvec = collect(range(0.2,0.5,step = 0.01))
     nlam = length(lamvec)
@@ -55,17 +55,17 @@ using Distributed
     group0 = getgroup(res0.deltam,nobstotal)
     ng0 = size(unique(group0))[1]
     ari0 = randindex(group,group0)[1]
-    norm0 = norm(res0.beta - betaor)
+    norm0 = norm(res0.betaest - betaor)
+
+
 
     t1 = Dates.now()
-
-
     index01 = argmin(BICvec01)
     res01 = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[index01])
     group01 = getgroup(res01.deltam,nobstotal)
     ng01 = size(unique(group01))[1]
     ari01 = randindex(group,group01)[1]
-    norm01 = norm(res01.beta - betaor)
+    norm01 = norm(res01.betaest - betaor)
 
     ## EM
     t2 = Dates.now()
@@ -86,23 +86,52 @@ using Distributed
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
-    norm1 = norm(res1.beta - betaor)
+    norm1 = norm(res1.betaest - betaor)
     estpc1 = index1[2]
 
-    t3 = Dates.now()
 
+    ### proxy
+    t3 = Dates.now()
+    BICvec3 = zeros(nlam)
+    for l = 1:nlam
+        res3l = GrFDAproxy(indexy, tm, y, knots, wt, betam0v5,
+        lam = lamvec[l], maxiter =1000)
+        BICvec3[l] = BICproxy2(res3l,1)
+    end
+
+    index3 = argmin(BICvec3)
+
+    res3 = GrFDAproxy(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[index3], maxiter =1000)
+    group3 = getgroup(res3.deltam,nobstotal)
+    ng3 = size(unique(group3))[1]
+    ari3 = randindex(group,group3)[1]
+
+    BICvec32 = zeros(3)
+    for P = 1:3
+        refit3p = refitFDA(indexy, tm, y, knots, group3, P, betam0v5)
+        BICvec32[P] = BICrefit(refit3p)
+    end
+
+    estpc3 = argmin(BICvec32)
+    refit3 = refitFDA(indexy, tm, y, knots, group3, estpc3, betam0v5)
+    norm3 = norm(transpose(refit3.alpm[:,group3]) - betaor)
+
+    t4 = Dates.now()
 
     ts0 = round(t1 - t0, Dates.Second)
     ts2 = round(t3 - t2, Dates.Second)
+    ts3 = round(t4 - t3, Dates.Second)
 
-    resvec = [ari0, ari01, ari1, ng0, ng01, ng1,
-    norm0, norm01, norm1,
-    estpc1, ts0,ts2,]
+
+
+    resvec = [ari0, ari01, ari1, ari3, ng0, ng01, ng1, ng3,
+    norm0, norm01, norm1, norm3,
+    estpc1, estpc3, ts0, ts2, ts3]
     return resvec
 end
 
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3m20ncl100 = pmap(sim3m20ncl100, 1:100)
-writedlm("resultsim3m20ncl100.csv", resultsim3m20ncl100, ',')
+resultsim3m30 = pmap(sim3m30, 1:100)
+writedlm("resultnew/resultsim3m30.csv", resultsim3m30, ',')

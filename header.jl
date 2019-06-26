@@ -2,6 +2,8 @@
 include("scad.jl")
 include("orthogonalBsplines.jl")
 include("getgroup.jl")
+include("max2pos.jl")
+
 
 using Clustering
 using LinearAlgebra

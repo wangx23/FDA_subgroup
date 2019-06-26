@@ -140,6 +140,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         decompm = eigen(M0)
         lamj = decompm.values[end - P + 1:end]
         theta = decompm.vectors[:,end- P+ 1:end]
+        theta = mapslices(max2pos,theta,dims = 1)
 
         # update betam, vm, deltam
         for i = 1:n
@@ -193,7 +194,25 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
         flag = 1
     end
 
-    res = (index = uindex, beta = betam, sig2 = sig2, theta = theta, lamj = lamj, lamjold = lamjold,
+
+    ### recalculate beta as betaest ####
+
+    groupest = getgroup(deltam, n)
+    ugroupest = unique(groupest)
+    ng = length(ugroupest)
+
+    betaavg = zeros(ng,p)
+
+    for j = 1:ng
+        indexj = groupest.==ugroupest[j]
+        nj = sum(indexj)
+        betaavg[j,:] = mapslices(mean,betam[indexj,:],dims =1)
+    end
+
+    betaest = betaavg[groupest,:]
+
+    res = (index = uindex, beta = betam, betaest = betaest, betaavg = betaavg,
+    groupest = groupest, sig2 = sig2, theta = theta, lamj = lamj, lamjold = lamjold,
     residsum = residsum, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 

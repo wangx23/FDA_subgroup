@@ -18,7 +18,7 @@ sig2 = 0.1
 lamj = [0.1,0.2]
 
 data3 = simdat3(sig2, lamj, m = m, ncl = ncl,seed = 6)
-CSV.write("data3.csv",data3)
+#CSV.write("data3.csv",data3)
 
 indexy3 = data3.ind
 tm3 = data3.time
@@ -38,7 +38,7 @@ lamv = collect(range(0,20,step=0.5))
 
 betam03v5 = initial5(indexy3,tm3, y3, knots3, lamv = lamv)
 
-refit0 = refitFDA(indexy3, tm3, y3, knots3, group, 2)
+refit0 = refitFDA(indexy3, tm3, y3, knots3, group, 2, betam03v5)
 
 
 lamvec = collect(range(0.2,0.5,step = 0.01))
@@ -83,6 +83,8 @@ K0=12,maxiter = 1000)
 
 group1 = getgroup(res1.deltam,150)
 randindex(group,group1)
+
+
 
 
 

@@ -1,12 +1,12 @@
 #### getgroup
 
-function getgroup(deltam::Array, n::Int; tol = 1e-4)
+function getgroup(deltam::Array, n::Int; tol = 1e-3)
     p = size(deltam)[1]
     b2value = mapslices(norm, deltam, dims = 1)
     b2value[b2value .<= tol] .= 0
 
     d2 = zeros(n,n)
-    for j = 1:n
+    for j = 1:(n-1)
       indexj1 = convert(Int,(2*n -j)*(j-1)/2 + 1)
       indexj2 = convert(Int,indexj1 + n - j - 1)
       d2[(n - indexj2 + indexj1):n,j] = b2value[indexj1:indexj2]

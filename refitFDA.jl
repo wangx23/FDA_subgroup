@@ -41,6 +41,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     decomp = eigen(Cm)
     lamj = decomp.values[end - P + 1:end]
     theta = decomp.vectors[:,end- P+ 1:end]
+    theta = mapslices(max2pos,theta,dims = 1)
 
     sig2 = mean((y - Ux * est).^2)
 
@@ -110,6 +111,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         decompm = eigen(M0)
         lamj = decompm.values[end - P + 1:end]
         theta = decompm.vectors[:,end- P+ 1:end]
+        theta = mapslices(max2pos,theta,dims = 1)
 
     ## update est
 
