@@ -9,7 +9,7 @@
 using Distributed
 
 
-@everywhere function sim3s10(seed::Int64)
+@everywhere function sim3s5(seed::Int64)
 
     m = 5
     sig2 = 0.1

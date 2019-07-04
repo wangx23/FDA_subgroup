@@ -104,6 +104,24 @@ Cn*log(n*obj.lent)*(ng*p) + n * (P*p - nconstraints)
 return value
 end
 
+function BICem3(obj::NamedTuple, c0::Number = 1)
+npinf = size(obj.beta)
+n = npinf[1]
+p = npinf[2]
+
+P = size(obj.theta)[2]
+nconstraints = P*(P+1)/2
+
+group = getgroup(obj.deltam,n)
+ng = size(unique(group))[1]
+Cn =  c0 * log(log(n*p))
+
+value  = n *obj.lent * log(obj.residsum/n/obj.lent) +
+Cn*log(n*obj.lent)*(ng*p) +log(n*obj.lent)* (P*p - nconstraints)
+
+return value
+end
+
 
 
 

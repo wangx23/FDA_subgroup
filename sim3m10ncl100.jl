@@ -12,7 +12,7 @@
 using Distributed
 
 
-@everywhere function sim3m20ncl100(seed)
+@everywhere function sim3m10ncl100(seed)
 
     m = 10
     ncl = 100
@@ -29,15 +29,14 @@ using Distributed
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
+    lamv = collect(range(0,20,step=0.5))
+
     betam0v5 = initial5(indexy, tm, y, knots, lamv = lamv)
 
     resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
-    lamv = collect(range(0,20,step=0.5))
-
-
     lamvec = collect(range(0.2,0.5,step = 0.01))
     nlam = length(lamvec)
 
