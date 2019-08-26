@@ -21,5 +21,12 @@ group[group==0] <- 3
 
 table(group)
 
-qplot(x = gridm[,1],y = gridm[,2], colour = as.factor(group))
-
+pdf("../doc/figures/groupsp.pdf",width = 6,height = 5)
+qplot(x = gridm[,1],y = gridm[,2], shape = as.factor(group)) +
+  theme_bw() +   theme(axis.title.x=element_blank(),
+                       axis.text.x=element_blank(),
+                       axis.ticks.x=element_blank())+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),legend.title = element_blank())
+dev.off()

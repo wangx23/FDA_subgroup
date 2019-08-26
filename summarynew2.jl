@@ -1,7 +1,7 @@
 using DelimitedFiles
 using StatsBase
 
-resultsim3m10 = readdlm("../resultnew/resultsim3m10.csv",',')
+resultsim3m10 = readdlm("../resultnew2/resultsim3m10v2.csv",',')
 
 mean(resultsim3m10[:,3])
 mean(resultsim3m10[:,7])
@@ -9,7 +9,7 @@ mean(resultsim3m10[:,7])
 mean(resultsim3m10[:,1])
 mean(resultsim3m10[:,5])
 
-resultsim3m20 = readdlm("../resultnew/resultsim3m20.csv",',')
+resultsim3m20 = readdlm("../resultnew2/resultsim3m20v2.csv",',')
 
 mean(resultsim3m20[:,3])
 mean(resultsim3m20[:,7])
@@ -19,7 +19,7 @@ mean(resultsim3m20[:,5])
 
 
 
-resultsim3m30 = readdlm("../resultnew/resultsim3m30.csv",',')
+resultsim3m30 = readdlm("../resultnew2/resultsim3m30v2.csv",',')
 
 mean(resultsim3m30[:,3])
 mean(resultsim3m10[:,7])
