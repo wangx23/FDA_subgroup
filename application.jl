@@ -8,8 +8,7 @@ include("GrFDA2.jl")
 include("GrInd.jl")
 include("GrFDAproxy.jl")
 include("refitFDA.jl")
-
-
+include("BIC.jl")
 
 
 
@@ -27,61 +26,81 @@ betam0 = initial2(indexy, tm, y, knots, lam = 10)
 
 wt = ones(convert(Int,656*655/2))
 
-res0 = GrInd(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 1000)
+res0 = GrInd(indexy,tm,y,knots,wt,betam0,lam = 0.3,maxiter = 1000)
 res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,maxiter = 1000)
-res2 = GrFDA2(indexy,tm,y,knots,2,wt,betam0,lam = 0.3,
-maxiter2 = 100, maxiter = 100)
+
 groupest = getgroup(res1.deltam, 656)
 
+
+using FreqTables
 
 datp1 = CSV.read("../doc/AggObese1990_2017.csv")
 datp1 = datp1[datp1.AGE .!=80,:]
 
+lamv = collect(range(0,20,step=0.5))
 indexy1 = datp1.AGE
 tm1 = standfun.(datp1.IYEAR, 1989, 2018)
 y1 = (datp1.PropObese .- mean(datp1.PropObese))./std(datp1.PropObese)
-knots1 = collect(range(0,length = 6, stop = 1))[2:5]
-betam01 = initial2(indexy1, tm1, y1, knots1, lam = 10)
+nage = size(unique(datp1.AGE))
 
-lamv = collect(range(0,10,step=1))
-betam01v5 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
+
+
+knots1 = collect(range(0,length = 5, stop = 1))[2:4]
+betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 
 wt1 = ones(convert(Int,62*61/2))
 
-res10 = GrInd(indexy1,tm1,y1,knots,2,wt1,betam01, lam  = 0.3, maxiter = 1000)
+res10 = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = 0.2, maxiter = 1000)
+group10 = getgroup(res10.deltam,62)
+freqtable(group10)
 
-res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01v5,
-lam = 0.3,maxiter = 1000)
+res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01,
+lam = 0.2,maxiter = 1000)
 group11 = getgroup(res11.deltam,62)
+freqtable(group11)
 
+freqtable(group10, group11)
 
-lamvec = collect(range(0.15,0.45,step = 0.01))
+lamvec = collect(range(0.05,0.45,step = 0.01))
 nlam = length(lamvec)
+
+BICvec0 = zeros(nlam)
+BICvec01 = zeros(nlam)
+for l = 1:nlam
+    res0l = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = lamvec[l])
+    BICvec0[l] = BICind2(res0l,1)
+    BICvec01[l] = BICind0(res0l)
+end
+
+argmin(BICvec0)
+res10 = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = lamvec[4], maxiter = 1000)
+group10 = getgroup(res10.deltam,62)
+freqtable(group10)
+
 
 BICvec11 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01v5,lam = lamvec[l],
-        K0 = 10,maxiter = 1000)
-        BICvec11[l,P] = BICem(res11l)
+        res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec11[l,P] = BICem2(res11l)
     end
 end
 
 argmin(BICvec11)
 
 
-res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01v5,
-lam = lamvec[17],maxiter = 1000)
+res11 = GrFDA(indexy1,tm1,y1,knots1,3,wt1,betam01,
+lam = lamvec[37],maxiter = 1000)
 
 group11 = getgroup(res11.deltam,62)
 
 
+#### considering weights? #######
 
-res12 = GrFDA2(indexy1,tm1,y1,knots,2,wt1,betam01,lam = 0.3,
-maxiter2 = 10, maxiter = 100)
-group12 = getgroup(res12.deltam,62)
-res12.lamj
-
-res13 = GrFDAproxy(indexy1, tm1, y1, knots,2, wt1, betam01, lam = 0.3, maxiter =1000)
-group13 = getgroup(res13.deltam, 62)
-refit13 = refitFDA(indexy1, tm1, y1, knots, group13,2)
+wmat <- matrix(0, nage2, nage2)
+for(i in 1:(nage2-1))
+  for(j in (i+1):(nage2))
+    wmat[i,j] <- abs(i - j)
+wmat <- wmat + t(wmat)
+ordervec <- wmat[lower.tri(wmat)]
