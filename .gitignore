@@ -1,3 +1,4 @@
 *.txt
 *.Rhistory
 *.csv
+*.DS_Store
