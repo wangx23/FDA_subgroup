@@ -78,7 +78,7 @@ end
 
 argmin(BICvec1)
 
-res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[15],
+res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[30],
 K0=12,maxiter = 1000)
 
 group1 = getgroup(res1.deltam,150)
