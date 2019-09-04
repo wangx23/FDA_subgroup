@@ -86,6 +86,20 @@ randindex(group,group1)
 
 
 
+BICvec11 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res1l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec11[l,P] = BICem3(res1l)
+    end
+end
+
+
+res1 = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[15],
+K0=12,maxiter = 1000)
+
+randindex(res1.groupest,group)
 
 
 ### iterative steps

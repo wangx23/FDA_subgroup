@@ -119,7 +119,30 @@ function GrFDAproxy(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     residsum = sum(resid)
 
+    ### recalculate beta as betaest ####
+    groupest = getgroup(deltam, n)
+    ugroupest = unique(groupest)
+    ng = length(ugroupest)
+
+    betaavg = zeros(ng,p)
+
+    for j = 1:ng
+        indexj = groupest.==ugroupest[j]
+        nj = sum(indexj)
+        betaavg[j,:] = mapslices(mean,betam[indexj,:],dims =1)
+    end
+
+    betaest = betaavg[groupest,:]
+
+    meanfunest = zeros(ntotal)
+    for i=1:n
+        indexi = indexy.== uindex[i]
+        meanfunest[indexi] = Bmi * betaest[i,:]
+    end
+
     res = (index = uindex, beta = betam, deltam = deltam,
+    betaest = betaest, betaavg = betaavg,
+    groupest = groupest, meanfunest = meanfunest, 
     residsum = residsum, lent = lent, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 

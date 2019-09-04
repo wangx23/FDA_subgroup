@@ -11,25 +11,79 @@ include("refitFDA.jl")
 include("BIC.jl")
 
 
-
-
 function standfun(x::Number, lower::Number, upper::Number)
 xnew = (x - lower)/(upper - lower)
 end
 
+lamv = collect(range(0,20,step=0.5))
+
 datp = CSV.read("../doc/dat656.csv")
+datp = datp[datp.Station .<= 55683,:]
 indexy = datp.Station
 tm = standfun.(datp.Year, 1960, 2015)
 y = (datp.max88 .- mean(datp.max88))./std(datp.max88)
 knots = collect(range(0,length = 5, stop = 1))[2:4]
-betam0 = initial2(indexy, tm, y, knots, lam = 10)
+betam0 = initial5(indexy, tm, y, knots, lamv = lamv)
 
-wt = ones(convert(Int,656*655/2))
+wt = ones(convert(Int,294*293/2))
 
 res0 = GrInd(indexy,tm,y,knots,wt,betam0,lam = 0.3,maxiter = 1000)
-res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.2,maxiter = 1000)
+res1 = GrFDA(indexy,tm,y,knots,1,wt,betam0,lam = 0.2,maxiter = 1000)
 
-groupest = getgroup(res1.deltam, 656)
+
+
+
+subdat = CSV.read("../doc/subdat.csv")
+indexy = subdat.Station[:,1]
+tm = standfun.(subdat.Year, 1960, 2015)
+y = (subdat.max88 .- mean(subdat.max88))./std(subdat.max88)
+knots = collect(range(0,length = 5, stop = 1))[2:4]
+betam0 = initial5(indexy, tm, y, knots, lamv = lamv)
+
+
+wt = ones(convert(Int,85*84/2))
+
+res0 = GrInd(indexy,tm,y,knots,wt,betam0,lam = 0.22,maxiter = 1000)
+freqtable(getgroup(res0.deltam,85))
+
+res1 = GrFDA(indexy,tm,y,knots,1,wt,betam0,lam = 0.22,maxiter = 1000)
+freqtable(res1.groupest)
+
+
+
+subdat1 = CSV.read("../doc/subdat1.csv")
+indexy = subdat1.Station[:,1]
+tm = standfun.(subdat1.Year, 1960, 2015)
+y = (subdat1.max88 .- mean(subdat1.max88))./std(subdat1.max88)
+knots = collect(range(0,length = 6, stop = 1))[2:5]
+betam0 = initial5(indexy, tm, y, knots, lamv = lamv)
+
+
+wt = ones(convert(Int,121*120/2))
+
+res0 = GrInd(indexy,tm,y,knots,wt,betam0,lam = 0.22,maxiter = 1000)
+freqtable(getgroup(res0.deltam,121))
+
+res1 = GrFDA(indexy,tm,y,knots,1,wt,betam0,lam = 0.2,maxiter = 1000)
+freqtable(res1.groupest)
+
+
+urban = CSV.read("../doc/urban.csv")
+
+indexy = urban.STATE[:,1]
+tm = standfun.(urban.year, 0, 13)
+y = (urban.ratio .- mean(urban.ratio))./std(urban.ratio)
+knots = collect(range(0,length = 5, stop = 1))[2:4]
+betam0 = initial5(indexy, tm, y, knots, lamv = lamv)
+
+
+wt = ones(convert(Int,48*47/2))
+
+res0 = GrInd(indexy,tm,y,knots,wt,betam0,lam = 0.22,maxiter = 1000)
+freqtable(getgroup(res0.deltam,48))
+
+res1 = GrFDA(indexy,tm,y,knots,2,wt,betam0,lam = 0.21,maxiter = 1000)
+freqtable(res1.groupest)
 
 
 using FreqTables
@@ -38,14 +92,19 @@ datp1 = CSV.read("../doc/AggObese1990_2017.csv")
 datp1 = datp1[datp1.AGE .!=80,:]
 
 lamv = collect(range(0,20,step=0.5))
-indexy1 = datp1.AGE
+indexy1 = datp1.AGE[:,1]
 tm1 = standfun.(datp1.IYEAR, 1989, 2018)
 y1 = (datp1.PropObese .- mean(datp1.PropObese))./std(datp1.PropObese)
 nage = size(unique(datp1.AGE))[1]
 
+datp2  = datp1
+datp2.IYEAR = tm1
+datp2.PropObese = y1
+CSV.write("../doc/datp2.csv", datp2)
 
 
-knots1 = collect(range(0,length = 6, stop = 1))[2:5]
+
+knots1 = collect(range(0,length = 5, stop = 1))[2:4]
 betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 
 wt1 = ones(convert(Int,62*61/2))
@@ -54,7 +113,7 @@ res10 = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = 0.2, maxiter = 1000)
 group10 = getgroup(res10.deltam,62)
 freqtable(group10)
 
-res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01,
+res11 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,
 lam = 0.2,maxiter = 1000)
 group11 = getgroup(res11.deltam,62)
 freqtable(group11)
@@ -74,7 +133,7 @@ end
 
 argmin(BICvec0)
 res10 = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = lamvec[4], maxiter = 1000)
-group10 = getgroup(res10.deltam,62)
+group10 = getgroup(res10.deltam,63)
 freqtable(group10)
 
 
@@ -83,9 +142,29 @@ for l = 1:nlam
     for P = 1:3
         res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec11[l,P] = BICem2(res11l)
+        BICvec11[l,P] = BICemlog3(res11l)
     end
 end
+
+argmin(BICvec11)
+res11 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[30],
+K0 = 10)
+freqtable(res11.groupest)
+
+BICvec111 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec111[l,P] = BICem4(res11l)
+    end
+end
+argmin(BICvec111)
+
+res111 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[21],
+K0 = 10)
+freqtable(res111.groupest)
+
 
 argmin(BICvec11)
 
@@ -103,7 +182,7 @@ res14 = GrFDA(indexy1,tm1,y1,knots1,3,wt1,betam01,
 lam = lamvec[30],maxiter = 1000)
 
 
-group11 = getgroup(res11.deltam,62)
+group11 = getgroup(res14.deltam,63)
 
 
 #### considering weights? #######
@@ -127,20 +206,86 @@ end
 
 wt2 =  exp.(0.5.*(1 .- ordervec))
 
-BICvec12 = zeros(nlam,3)
+BICvec22 = zeros(nlam,3)
 for l = 1:nlam
-    for P = 1:3
+    for P = 3
         res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec12[l,P] = BICem2(res12l)
+        BICvec22[l,P] = BICem2(res12l)
     end
 end
 
-wt2 =  exp.(0.5*(1 .- ordervec))
-res13 = GrFDA(indexy1,tm1,y1,knots1,3,wt2,betam01,lam = lamvec[33],
+argmin(BICvec22)
+
+res22 = GrFDA(indexy1,tm1,y1,knots1,3,wt2,betam01,lam = lamvec[32],
 K0 = 10)
+freqtable(res22.groupest)
 
-freqtable(res13.groupest)
+
+BICvec23 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec23[l,P] = BICem3(res13l)
+    end
+end
 
 
-### select part of the 656 stations #####
+argmin(BICvec23)
+
+res23 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[13],
+K0 = 10)
+freqtable(res23.groupest)
+
+
+BICvec24 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec24[l,P] = BICemlog3(res13l)
+    end
+end
+
+
+
+argmin(BICvec24)
+
+res24 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[41],
+K0 = 10)
+freqtable(res24.groupest)
+
+
+BICvec25 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec25[l,P] = BICem4(res13l)
+    end
+end
+
+argmin(BICvec25)
+
+res25 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[13],
+K0 = 10)
+freqtable(res25.groupest)
+
+
+wt3 =  exp.(0.8.*(1 .- ordervec))
+
+BICvec31 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt3,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec31[l,P] = BICem4(res13l)
+    end
+end
+
+argmin(BICvec31)
+
+res31 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[12],
+K0 = 10)
+freqtable(res31.groupest)

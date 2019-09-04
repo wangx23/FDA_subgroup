@@ -73,6 +73,85 @@ for l = 1:nlam
     end
 end
 
+
+BICvec11 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res11l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec11[l,P] = BICem4(res11l)
+    end
+end
+
+argmin(BICvec11)
+
+res11l = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+
+BICvec12 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res12l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec12[l,P] = BICemlog(res12l)
+    end
+end
+
+res12l = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+randindex(group,res12l.groupest)
+
+BICvec13 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res12l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec13[l,P] = BICemlog2(res12l)
+    end
+end
+
+res12l = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+randindex(group,res12l.groupest)
+
+
+BICvec13 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res12l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec13[l,P] = BICemlog3(res12l)
+    end
+end
+
+res12l = GrFDA(indexy3,tm3,y3,knots3,2,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+
+randindex(group,res12l.groupest)
+
+
+
+res122 = GrFDA(indexy3,tm3,y3,knots3,1,wt,betam03v5,lam = lamvec[10],
+K0=12,maxiter = 1000)
+
+
+BICemlog2(res12l)
+BICemlog2(res122)
+
+randindex(group,res12l.groupest)
+
+
+BICvec13 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 1:3
+        res12l = GrFDA(indexy3,tm3,y3,knots3,P,wt,betam03v5,lam = lamvec[l],
+        K0=12,maxiter = 1000)
+        BICvec13[l,P] = BICemlog2(res12l)
+    end
+end
+
+
+
 argmin(BICvec1)
 
 Cn =   log(n*p)

@@ -137,10 +137,12 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
     end
 
     residf = zeros(n)
+    meanfunest = zeros(ntotal)
     for i = 1:n
         indexi = indexy .== uindex[i]
         residf[i] = sum((y[indexi] - Bmi * alpm[:,group[i]] -
         Bmi * theta * mhat[i,:]).^2)
+        meanfunest[indexi] = Bmi *  alpm[:,group[i]]
     end
 
     residsum = sum(residf)
@@ -151,8 +153,9 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
         flag = 1
     end
 
-    res = (index = uindex, lent = length(unique(tm)), sig2 = sig2, theta = theta, alpm = alpm,
-    lamj = lamj, lamjold = lamjold, thetaold = thetaold, sig2old = sig2old,  normvalue = normvalue,
+    res = (index = uindex, lent = length(unique(tm)), sig2 = sig2, theta = theta,
+    alpm = alpm,lamj = lamj, lamjold = lamjold, thetaold = thetaold, sig2old = sig2old,
+    meanfunest = meanfunest, normvalue = normvalue,
     residsum = residsum, niteration = niteration, flag = flag)
 
     return res

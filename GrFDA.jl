@@ -211,8 +211,15 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     betaest = betaavg[groupest,:]
 
+    meanfunest = zeros(ntotal)
+    for i=1:n
+        indexi = indexy.== uindex[i]
+        meanfunest[indexi] = Bmi * betaest[i,:]
+    end
+
     res = (index = uindex, beta = betam, betaest = betaest, betaavg = betaavg,
-    groupest = groupest, sig2 = sig2, theta = theta, lamj = lamj, lamjold = lamjold,
+    groupest = groupest, sig2 = sig2, theta = theta, meanfunest = meanfunest,
+    lamj = lamj, lamjold = lamjold,
     residsum = residsum, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 

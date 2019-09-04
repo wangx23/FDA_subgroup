@@ -120,9 +120,16 @@ function GrInd(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     betaest = betaavg[groupest,:]
 
+    ### mean function estimation
+    meanfunest = zeros(ntotal)
+    for i=1:n
+        indexi = indexy.== uindex[i]
+        meanfunest[indexi] = Bmi * betaest[i,:]
+    end
+
 
     res = (index = uindex, beta = betam, betaest = betaest, betaavg = betaavg,
-    sig2 = sig2, lent = lent,
+    sig2 = sig2, lent = lent, meanfunest = meanfunest,
     deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
