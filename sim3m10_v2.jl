@@ -17,7 +17,7 @@ using Distributed
 
     m = 10
     ncl = 50
-    sig2 = 0.1
+    sig2 = 0.04
     lamj = [0.1,0.2]
 
     data = simdat3(sig2, lamj, m = m, ncl = ncl, seed = seed)
@@ -83,6 +83,16 @@ using Distributed
             BICvec1[l,P] = BICem4(res1l,1)
         end
     end
+
+    BICvec11 = zeros(nlam,3)
+    for l = 1:nlam
+        for P = 1:3
+            res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
+            K0 = 12,maxiter = 1000)
+            BICvec11[l,P] = BICem2(res1l,1)
+        end
+    end
+
 
     index1 = argmin(BICvec1)
 
