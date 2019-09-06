@@ -8,6 +8,7 @@
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
 @everywhere include("simdat3.jl")
+@everywhere include("complam.jl")
 @everywhere using Dates
 using Distributed
 
@@ -16,7 +17,7 @@ using Distributed
 
     m = 20
     ncl = 50
-    sig2 = 0.05
+    sig2 = 0.04
     lamj = [0.1,0.2]
 
     data = simdat3(sig2, lamj, m = m, ncl = ncl, seed = seed)
@@ -80,23 +81,12 @@ using Distributed
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
             K0 = 12,maxiter = 1000)
-            BICvec1[l,P] = BICem2(res1l,1)
-        end
-    end
-
-    BICvec11 = zeros(nlam,3)
-    for l = 1:nlam
-        for P = 1:3
-            res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
-            K0 = 12,maxiter = 1000)
-            BICvec11[l,P] = BICem4(res1l,1)
+            BICvec1[l,P] = BICem4(res1l,1)
         end
     end
 
 
-
-
-    index1 = argmin(BICvec11)
+    index1 = argmin(BICvec1)
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
@@ -104,9 +94,12 @@ using Distributed
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
-    norm1 = norm(res1.betaest - betaor)
+    norm1 = norm(res1.betaest - betaor)/sqrt(150)
     estpc1 = index1[2]
     rmse1 = norm(res1.meanfunest - meanfun)/sqrt(150*20)
+
+    ### accuray of lamj
+    rmselam = complam(res1.lamj,lamj,index1[2])
 
 
     ### proxy
@@ -133,7 +126,8 @@ using Distributed
 
     estpc3 = argmin(BICvec32)
     refit3 = refitFDA(indexy, tm, y, knots, group3, estpc3, betam0v5)
-    norm3 = norm(transpose(refit3.alpm[:,group3]) - betaor)
+    norm3 = norm(transpose(refit3.alpm[:,group3]) - betaor)/sqrt(150)
+    rmse3 =  norm(refit3.meanfunest- meanfun)/sqrt(150*20)
 
     t4 = Dates.now()
 
@@ -143,9 +137,12 @@ using Distributed
 
 
 
-    resvec = [ari0, ari01, ari1, ari3, ng0, ng01, ng1, ng3,
+    resvec = vcat([ari0, ari01, ari1, ari3,
+    ng0, ng01, ng1, ng3,
     norm0, norm01, norm1, norm3,
-    estpc1, estpc3, ts0, ts2, ts3]
+    rmse0, rmse01, rmse1, rmse3,
+    estpc1, estpc3, ts0, ts2, ts3,
+    rmselam], res1.lamj)
     return resvec
 end
 
@@ -153,4 +150,4 @@ end
 
 using DelimitedFiles
 resultsim3m20 = pmap(sim3m20, 1:100)
-writedlm("resultnew/resultsim3m20.csv", resultsim3m20, ',')
+writedlm("resultnew_v2/resultsim3m20.csv", resultsim3m20, ',')

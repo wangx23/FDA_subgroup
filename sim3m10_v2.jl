@@ -9,6 +9,7 @@
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
 @everywhere include("simdat3.jl")
+@everywhere include("complam.jl")
 @everywhere using Dates
 using Distributed
 
@@ -84,16 +85,6 @@ using Distributed
         end
     end
 
-    BICvec11 = zeros(nlam,3)
-    for l = 1:nlam
-        for P = 1:3
-            res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
-            K0 = 12,maxiter = 1000)
-            BICvec11[l,P] = BICem2(res1l,1)
-        end
-    end
-
-
     index1 = argmin(BICvec1)
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
@@ -106,6 +97,9 @@ using Distributed
     norm1 = norm(res1.betaest - betaor)/sqrt(150)
     estpc1 = index1[2]
     rmse1 =  norm(meanfunest1 - meanfun)/sqrt(150*10)
+
+    ### accuray of lamj
+    rmselam = complam(res1.lamj,lamj,index1[2])
 
 
     ### proxy
@@ -144,9 +138,12 @@ using Distributed
 
 
 
-    resvec = [ari0, ari01, ari1, ari3, ng0, ng01, ng1, ng3,
+    resvec = vcat([ari0, ari01, ari1, ari3,
+    ng0, ng01, ng1, ng3,
     norm0, norm01, norm1, norm3,
-    estpc1, estpc3, ts0, ts2, ts3]
+    rmse0, rmse01, rmse1, rmse3,
+    estpc1, estpc3, ts0, ts2, ts3,
+    rmselam], res1.lamj)
     return resvec
 end
 
@@ -154,4 +151,4 @@ end
 
 using DelimitedFiles
 resultsim3m10 = pmap(sim3m10, 1:100)
-writedlm("resultnew/resultsim3m10.csv", resultsim3m10, ',')
+writedlm("resultnew_v2/resultsim3m10.csv", resultsim3m10, ',')
