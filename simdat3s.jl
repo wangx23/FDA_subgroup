@@ -59,7 +59,8 @@ function simdat3s(sig2::Number, lamj::Vector, group::Vector;
     data = DataFrame(group = repeat(group,inner = m),
              ind = repeat(1:n,inner = m),
              time = repeat(tvec, n),
-             obs = zeros(ntotal))
+             obs = zeros(ntotal),
+             meanfun = zeros(ntotal))
 
     id1 = unique(data.ind[data.group.==1])
     id2 = unique(data.ind[data.group.==2])
@@ -76,6 +77,7 @@ function simdat3s(sig2::Number, lamj::Vector, group::Vector;
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
         data.obs[((data.group.==1) .& (data.ind .== id1[i]))[:,1]] = mean1 + vi
+        data.meanfun[((data.group.==1) .& (data.ind .== id1[i]))[:,1]] = mean1
     end
 
     ### group 2
@@ -83,6 +85,7 @@ function simdat3s(sig2::Number, lamj::Vector, group::Vector;
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
         data.obs[((data.group.==2) .& (data.ind .== id2[i]))[:,1]] = mean2 + vi
+        data.meanfun[((data.group.==2) .& (data.ind .== id2[i]))[:,1]] = mean2
     end
 
     ### group 3
@@ -91,6 +94,7 @@ function simdat3s(sig2::Number, lamj::Vector, group::Vector;
         vi = sqrt(lamj[1])*randn(1)[1]*psi2.(tvec) +
                 sqrt(lamj[2])*randn(1)[1]*psi3.(tvec)
         data.obs[((data.group.==3) .& (data.ind .== id3[i]))[:,1]] = mean3 + vi
+        data.meanfun[((data.group.==3) .& (data.ind .== id3[i]))[:,1]] = mean3
     end
 
 
