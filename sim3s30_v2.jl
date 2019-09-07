@@ -107,7 +107,7 @@ using Distributed
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt2,betam0v5,lam = lamvec[l],
             K0=12,maxiter = 500)
-            BICvec2[l,P,l1] = BICem2(res1l)
+            BICvec2[l,P,l1] = BICem4(res1l)
         end
     end
     end
