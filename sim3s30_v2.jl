@@ -6,13 +6,14 @@
 @everywhere include("BIC.jl")
 @everywhere include("simdat3s.jl")
 @everywhere include("neigh.jl")
+@everywhere include("complam.jl")
 using Distributed
 
 
 @everywhere function sim3s30(seed::Int64)
 
     m = 30
-    sig2 = 0.1
+    sig2 = 0.04
     lamj = [0.1,0.2]
 
     ngrid = 12
@@ -49,6 +50,7 @@ using Distributed
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
+    meanfun = data.meanfun
 
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
@@ -57,9 +59,6 @@ using Distributed
 
     resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
-
-
-
 
     lamvec = collect(range(0.2,0.5,step = 0.01))
     nlam = length(lamvec)
@@ -70,8 +69,8 @@ using Distributed
     for l = 1:nlam
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
-            K0 = 12,maxiter = 1000)
-            BICvec1[l,P] = BICem2(res1l,1)
+            K0 = 12,maxiter = 500)
+            BICvec1[l,P] = BICem4(res1l,1)
         end
     end
 
@@ -79,11 +78,12 @@ using Distributed
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
-    K0=12,maxiter = 1000)
+    K0=12,maxiter = 500)
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
-    norm1 = norm(res1.betaest - betaor)
+    norm1 = norm(res1.betaest - betaor)/sqrt(150)
+    rmse1 = norm(res1.meanfunest- meanfun)/sqrt(150*30)
     estpc1 = index1[2]
 
 
@@ -106,7 +106,7 @@ using Distributed
     for l = 1:nlam
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt2,betam0v5,lam = lamvec[l],
-            K0=12,maxiter = 1000)
+            K0=12,maxiter = 500)
             BICvec2[l,P,l1] = BICem2(res1l)
         end
     end
@@ -116,14 +116,16 @@ using Distributed
     wt2 = exp.(alp2[index2[3]] .* (1 .- ordermat[findall(tril(ordermat).!=0)]))
     res2 = GrFDA(indexy,tm,y,knots,index2[2],wt2,betam0v5,
     lam = lamvec[index2[1]],
-    K0=12,maxiter = 1000)
+    K0=12,maxiter = 500)
     group2 = getgroup(res2.deltam,nobstotal)
     ng2 = size(unique(group2))[1]
     ari2 = randindex(group,group2)[1]
-    norm2 = norm(res2.betaest - betaor)
+    norm2 = norm(res2.betaest - betaor)/sqrt(150)
     estpc2 = index2[2]
+    rmse2 = norm(res2.meanfunest - meanfun)/sqrt(150*30)
 
-    resvec = [ari1, ari2, ng1, ng2,norm1, norm2,
+    resvec = [ari1, ari2, ng1, ng2,
+    norm1, norm2,rmse1, rmse2,
     estpc1, estpc2]
     return resvec
 end
@@ -132,4 +134,4 @@ end
 
 using DelimitedFiles
 resultsim3s30 = pmap(sim3s30, 1:100)
-writedlm("resultnew/resultsim3s30.csv", resultsim3s30, ',')
+writedlm("resultnew_v2/resultsim3s30.csv", resultsim3s30, ',')
