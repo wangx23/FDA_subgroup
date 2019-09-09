@@ -133,7 +133,7 @@ end
 
 argmin(BICvec0)
 res10 = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = lamvec[4], maxiter = 1000)
-group10 = getgroup(res10.deltam,63)
+group10 = getgroup(res10.deltam,62)
 freqtable(group10)
 
 
@@ -151,38 +151,23 @@ res11 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[30],
 K0 = 10)
 freqtable(res11.groupest)
 
-BICvec111 = zeros(nlam,3)
+BICvec2 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
+        res2l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec111[l,P] = BICem4(res11l)
+        BICvec2[l,P] = BICem4(res2l)
     end
 end
-argmin(BICvec111)
+argmin(BICvec2)
 
-res111 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[21],
+res2 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[21],
 K0 = 10)
-freqtable(res111.groupest)
+freqtable(res2.groupest)
 
 
 argmin(BICvec11)
 
-
-res11 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01,
-lam = lamvec[32],maxiter = 1000)
-
-res12 = GrFDA(indexy1,tm1,y1,knots1,2,wt1,betam01,
-lam = lamvec[10],maxiter = 1000)
-
-res13 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,
-lam = lamvec[10],maxiter = 1000)
-
-res14 = GrFDA(indexy1,tm1,y1,knots1,3,wt1,betam01,
-lam = lamvec[30],maxiter = 1000)
-
-
-group11 = getgroup(res14.deltam,63)
 
 
 #### considering weights? #######
@@ -204,14 +189,33 @@ for i in 1:(nage - 1)
 end
 
 
-wt2 =  exp.(0.5.*(1 .- ordervec))
+wt21 =  exp.(0.25.*(1 .- ordervec))
+
+BICvec21 = zeros(nlam,3)
+for l = 1:nlam
+    for P = 3
+        res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt21,betam01,lam = lamvec[l],
+        K0 = 10)
+        BICvec21[l,P] = BICem4(res12l)
+    end
+end
+
+argmin(BICvec21)
+
+res21 = GrFDA(indexy1,tm1,y1,knots1,3,wt21,betam01,lam = lamvec[25],
+K0 = 10)
+freqtable(res21.groupest)
+
+
+
+wt22 =  exp.(0.5.*(1 .- ordervec))
 
 BICvec22 = zeros(nlam,3)
 for l = 1:nlam
     for P = 3
-        res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt22,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec22[l,P] = BICem2(res12l)
+        BICvec22[l,P] = BICem4(res12l)
     end
 end
 
@@ -222,70 +226,38 @@ K0 = 10)
 freqtable(res22.groupest)
 
 
+
+wt23 =  exp.(0.75.*(1 .- ordervec))
+
 BICvec23 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        res23l = GrFDA(indexy1,tm1,y1,knots1,P,wt23,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec23[l,P] = BICem3(res13l)
+        BICvec23[l,P] = BICem4(res23l)
     end
 end
 
-
 argmin(BICvec23)
 
-res23 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[13],
+res23 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[12],
 K0 = 10)
 freqtable(res23.groupest)
 
 
+wt24 =  exp.((1 .- ordervec))
+
 BICvec24 = zeros(nlam,3)
 for l = 1:nlam
     for P = 1:3
-        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
+        res24l = GrFDA(indexy1,tm1,y1,knots1,P,wt24,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec24[l,P] = BICemlog3(res13l)
+        BICvec24[l,P] = BICem4(res24l)
     end
 end
-
-
 
 argmin(BICvec24)
-
-res24 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[41],
+res24 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[17],
 K0 = 10)
+
 freqtable(res24.groupest)
-
-
-BICvec25 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 1:3
-        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt2,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec25[l,P] = BICem4(res13l)
-    end
-end
-
-argmin(BICvec25)
-
-res25 = GrFDA(indexy1,tm1,y1,knots1,1,wt2,betam01,lam = lamvec[13],
-K0 = 10)
-freqtable(res25.groupest)
-
-
-wt3 =  exp.(0.8.*(1 .- ordervec))
-
-BICvec31 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 1:3
-        res13l = GrFDA(indexy1,tm1,y1,knots1,P,wt3,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec31[l,P] = BICem4(res13l)
-    end
-end
-
-argmin(BICvec31)
-
-res31 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[12],
-K0 = 10)
-freqtable(res31.groupest)
