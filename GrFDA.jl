@@ -10,7 +10,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     P::Int, wt::Vector, betam0::Array;
     lam::Number = 0.5, nu::Number = 1, gam::Number = 3,
     boundary::Vector = [0,1], K0 = 20, maxiter::Int = 1000,
-    tolabs::Number = 1e-4, tolrel::Number = 1e-2)
+    tolabs::Number = 1e-4, tolrel::Number = 1e-2, seed::Int = 1256)
 
     uniqtm = unique(tm)
     Bmt = orthogonalBsplines(tm, knots)
@@ -42,7 +42,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     # calculate covariance matrix, since this is grid data
     Cm = zeros(p,p)
     residual = zeros(ntotal)
-    Random.seed!(1256)
+    Random.seed!(seed)
     reskm = kmeans(transpose(betam0), K0; maxiter = 200)
     groupkm = reskm.assignments
     centerskm = reskm.centers

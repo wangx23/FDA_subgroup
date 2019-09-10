@@ -24,6 +24,7 @@ lamv = collect(range(0,20,step=0.5))
 indexy1 = datp1.AGE[:,1]
 tm1 = standfun.(datp1.IYEAR, 1989, 2018)
 y1 = (datp1.PropObese .- mean(datp1.PropObese))./std(datp1.PropObese)
+nage = length(unique(indexy1))
 
 
 
@@ -33,7 +34,12 @@ y1 = (datp1.PropObese .- mean(datp1.PropObese))./std(datp1.PropObese)
 lamvec = collect(range(0.05,0.45,step = 0.01))
 alpvec = [0,0.25,0.5,0.75,1]
 
-function estfun(nknots, alpvec, lamvec, lamv, indexy, tm, y)
+knots1 = collect(range(0,length = 5, stop = 1))[2:4]
+betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
+nlam = length(lamvec)
+
+
+function estfun(nknots, alpvec, lamvec, lamv, indexy, tm, y, ordervec)
 
     knots1 = collect(range(0,length = nknots, stop = 1))[2:(nknots-1)]
     betam01 = initial5(indexy, tm, y, knots1, lamv = lamv)
@@ -56,23 +62,7 @@ function estfun(nknots, alpvec, lamvec, lamv, indexy, tm, y)
     lam  = lamvec[argmin(BICvec0)], maxiter = 1000)
     group0 = getgroup(res0.deltam,nage)
 
-    #### considering weights? #######
-
-    wmat =  zeros(nage, nage)
-    for i in 1:(nage-1)
-      for j in (i+1):(nage)
-          wmat[i,j] = abs(i - j)
-        end
-    end
-
-    ind1 = 1
-    ordervec = zeros(convert(Int, nage*(nage-1)/2))
-    for i in 1:(nage - 1)
-        ind2 = convert(Int,(2*nage - i - 1)*i/2)
-        ordervec[ind1:ind2] = wmat[i,(i+1):nage]
-        ind1 = ind2+1
-    end
-
+    #### considering weights#######
     nalp = length(alpvec)
 
     groupw = zeros(Int,nage,nalp)
@@ -100,91 +90,67 @@ function estfun(nknots, alpvec, lamvec, lamv, indexy, tm, y)
 
 end
 
-estknots5 = estfun(5, alpvec[4], lamvec, lamv, indexy1, tm1, y1)
 
 
+##### calculate weights ####
 
-
-
-
-argmin(BICvec1)
-
-res1 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[20],
-K0 = 10)
-freqtable(res1.groupest)
-
-
-
-
-wt21 =  exp.(0.25.*(1 .- ordervec))
-
-BICvec21 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 3
-        res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt21,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec21[l,P] = BICem4(res12l)
+wmat =  zeros(nage, nage)
+for i in 1:(nage-1)
+  for j in (i+1):(nage)
+      wmat[i,j] = abs(i - j)
     end
 end
 
-argmin(BICvec21)
-
-res21 = GrFDA(indexy1,tm1,y1,knots1,3,wt21,betam01,lam = lamvec[23],
-K0 = 10)
-freqtable(res21.groupest)
-
-
-
-wt22 =  exp.(0.5.*(1 .- ordervec))
-
-BICvec22 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 1:3
-        res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt22,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec22[l,P] = BICem4(res12l)
-    end
+ind1 = 1
+ordervec = zeros(convert(Int, nage*(nage-1)/2))
+for i in 1:(nage - 1)
+    ind2 = convert(Int,(2*nage - i - 1)*i/2)
+    ordervec[ind1:ind2] = wmat[i,(i+1):nage]
+    global ind1 = ind2+1
 end
 
-argmin(BICvec22)
 
-res22 = GrFDA(indexy1,tm1,y1,knots1,3,wt22,betam01,lam = lamvec[33],
-K0 = 10)
-freqtable(res22.groupest)
+estknots4 = estfun(4, alpvec, lamvec, lamv, indexy1, tm1,
+y1, ordervec)
 
+argmin(estknots4.BICarray)
+minimum(estknots4.BICarray)
+freqtable(estknots4.groupw[:,5])
 
-
-wt23 =  exp.(0.75.*(1 .- ordervec))
-
-BICvec23 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 1:3
-        res23l = GrFDA(indexy1,tm1,y1,knots1,P,wt23,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec23[l,P] = BICem4(res23l)
-    end
-end
-
-argmin(BICvec23)
-
-res23 = GrFDA(indexy1,tm1,y1,knots1,1,wt23,betam01,lam = lamvec[20],
-K0 = 10)
-freqtable(res23.groupest)
+freqtable(estknots4.group0)
 
 
-wt24 =  exp.((1 .- ordervec))
+estknots5 = estfun(5, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
 
-BICvec24 = zeros(nlam,3)
-for l = 1:nlam
-    for P = 1:3
-        res24l = GrFDA(indexy1,tm1,y1,knots1,P,wt24,betam01,lam = lamvec[l],
-        K0 = 10)
-        BICvec24[l,P] = BICem4(res24l)
-    end
-end
+argmin(estknots5.BICarray)
+minimum(estknots5.BICarray)
+freqtable(estknots5.groupw[:,4])
 
-argmin(BICvec24)
-res24 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[17],
-K0 = 10)
+freqtable(estknots5.group0)
 
-freqtable(res24.groupest)
+
+##### refit ####
+knots1 = collect(range(0,length = 5, stop = 1))[2:4]
+betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
+nlam = length(lamvec)
+
+
+refit52 = refitFDA(indexy1,tm1, y1, knots1, estknots5.groupw[:,4], 1,
+betam01)
+
+meanfunest52 = refit52.meanfunest .* std(datp1.PropObese) .+ mean(datp1.PropObese)
+
+
+
+
+
+
+
+
+
+
+estknots6 = estfun(6, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
+
+argmin(estknots6.BICarray)
+minimum(estknots6.BICarray)
+freqtable(estknots6.groupw[:,5])
