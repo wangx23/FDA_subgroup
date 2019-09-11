@@ -140,8 +140,10 @@ betam01)
 
 meanfunest52 = refit52.meanfunest .* std(datp1.PropObese) .+ mean(datp1.PropObese)
 
+using DelimitedFiles
 
-
+writedlm("../result/meanfunest52.txt",meanfunest52)
+writedlm("../result/groupest.txt",estknots5.groupw[:,4])
 
 
 
