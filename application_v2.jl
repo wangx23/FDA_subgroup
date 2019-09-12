@@ -92,6 +92,8 @@ end
 
 
 
+
+
 ##### calculate weights ####
 
 wmat =  zeros(nage, nage)
@@ -146,13 +148,67 @@ writedlm("../result/meanfunest52.txt",meanfunest52)
 writedlm("../result/groupest.txt",estknots5.groupw[:,4])
 
 
-
-
-
-
-
 estknots6 = estfun(6, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
 
 argmin(estknots6.BICarray)
 minimum(estknots6.BICarray)
 freqtable(estknots6.groupw[:,5])
+
+
+###### another BIC #####
+function estfunv2(nknots, alpvec, lamvec, lamv, indexy, tm, y, ordervec)
+
+    knots1 = collect(range(0,length = nknots, stop = 1))[2:(nknots-1)]
+    betam01 = initial5(indexy, tm, y, knots1, lamv = lamv)
+    nlam = length(lamvec)
+
+    nage = size(unique(indexy))[1]
+
+    wt1 = ones(convert(Int,nage*(nage-1)/2))
+
+    # without covariance
+    BICvec0 = zeros(nlam)
+    BICvec01 = zeros(nlam)
+    for l = 1:nlam
+        res0l = GrInd(indexy1,tm1,y1,knots1,wt1,betam01, lam  = lamvec[l])
+        BICvec0[l] = BICind2(res0l,1)
+        BICvec01[l] = BICind0(res0l)
+    end
+
+    res0 = GrInd(indexy,tm,y,knots1,wt1,betam01,
+    lam  = lamvec[argmin(BICvec0)], maxiter = 1000)
+    group0 = getgroup(res0.deltam,nage)
+
+    #### considering weights#######
+    nalp = length(alpvec)
+
+    groupw = zeros(Int,nage,nalp)
+    BICarray = zeros(nlam, 3, nalp)
+
+    for k in 1:nalp
+        wtk =  exp.(alpvec[k].*(1 .- ordervec))
+        for l in 1:nlam
+            for P = 1:3
+                resl = GrFDA(indexy,tm,y,knots1,P,wtk,betam01,lam = lamvec[l],
+                K0 = 10)
+                BICarray[l,P,k] = BICem2(resl)
+            end
+        end
+        indk = argmin(BICarray[:,:,k])
+        resk = GrFDA(indexy,tm,y,knots1,indk[2],wtk,betam01,lam = lamvec[indk[1]],
+        K0 = 10)
+        groupk = getgroup(resk.deltam,nage)
+        groupw[:,k] = groupk
+    end
+
+    res = (BICarray = BICarray, groupw = groupw,
+    BICvec0 = BICvec0, group0 = group0)
+    return res
+
+end
+
+
+estknots5v2 = estfunv2(5, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
+argmin(estknots5v2.BICarray)
+minimum(estknots5v2.BICarray)
+freqtable(estknots5v2.groupw[:,1])
