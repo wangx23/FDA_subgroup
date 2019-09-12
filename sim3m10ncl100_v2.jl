@@ -64,7 +64,8 @@ using Distributed
 
 
     index01 = argmin(BICvec01)
-    res01 = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[index01])
+    res01 = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[index01],
+    maxiter = 500)
     group01 = getgroup(res01.deltam,nobstotal)
     ng01 = size(unique(group01))[1]
     ari01 = randindex(group,group01)[1]
@@ -77,7 +78,7 @@ using Distributed
     for l = 1:nlam
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
-            K0 = 12,maxiter = 1000)
+            K0 = 12,maxiter = 500)
             BICvec1[l,P] = BICem4(res1l,1)
         end
     end
@@ -86,7 +87,7 @@ using Distributed
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
-    K0=12,maxiter = 1000)
+    K0=12,maxiter = 500)
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
@@ -104,7 +105,7 @@ using Distributed
     ng0, ng01, ng1,
     norm0, norm01, norm1,
     rmse0, rmse01, rmse1,
-    estpc1, ts0,ts2,]
+    estpc1, ts0,ts2]
     return resvec
 end
 

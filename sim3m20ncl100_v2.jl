@@ -47,7 +47,8 @@ using Distributed
     BICvec0 = zeros(nlam)
     BICvec01 = zeros(nlam)
     for l = 1:nlam
-        res0l = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[l])
+        res0l = GrInd(indexy, tm, y, knots, wt, betam0v5, lam = lamvec[l],
+        maxiter = 500)
         BICvec0[l] = BICind2(res0l,1)
         BICvec01[l] = BICind0(res0l)
     end
@@ -77,7 +78,7 @@ using Distributed
     for l = 1:nlam
         for P = 1:3
             res1l = GrFDA(indexy,tm,y,knots,P,wt,betam0v5,lam = lamvec[l],
-            K0 = 12,maxiter = 1000)
+            K0 = 12,maxiter = 500)
             BICvec1[l,P] = BICem4(res1l,1)
         end
     end
@@ -86,7 +87,7 @@ using Distributed
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
-    K0=12,maxiter = 1000)
+    K0=12,maxiter = 500)
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
@@ -100,9 +101,12 @@ using Distributed
     ts0 = round(t1 - t0, Dates.Second)
     ts2 = round(t3 - t2, Dates.Second)
 
-    resvec = [ari0, ari01, ari1, ng0, ng01, ng1,
+    resvec = [ari0, ari01, ari1,
+    ng0, ng01, ng1,
     norm0, norm01, norm1,
-    estpc1, ts0,ts2,]
+    rmse0, rmse01, rmse1,
+    estpc1, ts0,ts2]
+
     return resvec
 end
 
