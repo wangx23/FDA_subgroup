@@ -142,13 +142,13 @@ for l = 1:nlam
     for P = 1:3
         res11l = GrFDA(indexy1,tm1,y1,knots1,P,wt1,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec11[l,P] = BICemlog3(res11l)
+        BICvec11[l,P] = BICem2(res11l)
     end
 end
 
 argmin(BICvec11)
-res11 = GrFDA(indexy1,tm1,y1,knots1,1,wt1,betam01,lam = lamvec[30],
-K0 = 10)
+res11 = GrFDA(indexy1,tm1,y1,knots1,3,wt1,betam01,lam = lamvec[30],
+K0 = 36)
 freqtable(res11.groupest)
 
 BICvec2 = zeros(nlam,3)
@@ -196,7 +196,7 @@ for l = 1:nlam
     for P = 3
         res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt21,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec21[l,P] = BICem4(res12l)
+        BICvec21[l,P] = BICem2(res12l)
     end
 end
 
@@ -215,13 +215,13 @@ for l = 1:nlam
     for P = 3
         res12l = GrFDA(indexy1,tm1,y1,knots1,P,wt22,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec22[l,P] = BICem4(res12l)
+        BICvec22[l,P] = BICem2(res12l)
     end
 end
 
 argmin(BICvec22)
 
-res22 = GrFDA(indexy1,tm1,y1,knots1,3,wt2,betam01,lam = lamvec[32],
+res22 = GrFDA(indexy1,tm1,y1,knots1,3,wt22,betam01,lam = lamvec[32],
 K0 = 10)
 freqtable(res22.groupest)
 
@@ -234,13 +234,13 @@ for l = 1:nlam
     for P = 1:3
         res23l = GrFDA(indexy1,tm1,y1,knots1,P,wt23,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec23[l,P] = BICem4(res23l)
+        BICvec23[l,P] = BICem2(res23l)
     end
 end
 
 argmin(BICvec23)
 
-res23 = GrFDA(indexy1,tm1,y1,knots1,1,wt3,betam01,lam = lamvec[12],
+res23 = GrFDA(indexy1,tm1,y1,knots1,3,wt23,betam01,lam = lamvec[41],
 K0 = 10)
 freqtable(res23.groupest)
 
@@ -252,7 +252,7 @@ for l = 1:nlam
     for P = 1:3
         res24l = GrFDA(indexy1,tm1,y1,knots1,P,wt24,betam01,lam = lamvec[l],
         K0 = 10)
-        BICvec24[l,P] = BICem4(res24l)
+        BICvec24[l,P] = BICem2(res24l)
     end
 end
 

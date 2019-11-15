@@ -111,17 +111,6 @@ for i in 1:(nage - 1)
     global ind1 = ind2+1
 end
 
-
-estknots4 = estfun(4, alpvec, lamvec, lamv, indexy1, tm1,
-y1, ordervec)
-
-argmin(estknots4.BICarray)
-minimum(estknots4.BICarray)
-freqtable(estknots4.groupw[:,5])
-
-freqtable(estknots4.group0)
-
-
 estknots5 = estfun(5, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
 
 argmin(estknots5.BICarray)
@@ -129,6 +118,7 @@ minimum(estknots5.BICarray)
 freqtable(estknots5.groupw[:,4])
 
 freqtable(estknots5.group0)
+
 
 
 ##### refit ####
@@ -142,10 +132,40 @@ betam01)
 
 meanfunest52 = refit52.meanfunest .* std(datp1.PropObese) .+ mean(datp1.PropObese)
 
+
+refit52.theta
+refit52.eigenfunmat
+refit52.sig2
+refit52.lamj
+
+using JLD
+using JLD2, FileIO
+save("../refit52.jld2", refit52)
+
+save("../sig2lam2.jld", "lamj", refit52.lamj, "sig2",refit52.sig2)
+
+
 using DelimitedFiles
 
 writedlm("../result/meanfunest52.txt",meanfunest52)
 writedlm("../result/groupest.txt",estknots5.groupw[:,4])
+writedlm("../result/eigenfunmat.txt", refit52.eigenfunmat)
+
+Bmtm = orthogonalBsplines(unique(tm1), knots1)
+writedlm("../result/Bmtm.txt", Bmtm)
+writedlm("../result/theta.txt", refit52.theta)
+
+
+##########
+
+estknots4 = estfun(4, alpvec, lamvec, lamv, indexy1, tm1,
+y1, ordervec)
+
+argmin(estknots4.BICarray)
+minimum(estknots4.BICarray)
+freqtable(estknots4.groupw[:,5])
+
+freqtable(estknots4.group0)
 
 
 estknots6 = estfun(6, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
