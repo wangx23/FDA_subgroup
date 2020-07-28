@@ -3,6 +3,11 @@ library(tidyverse)
 dat = read.csv("Dropbox/Tanja&XinW/Newdata/AggObese1990_2017.csv")
 dat = dat[dat$AGE!=80,]
 
+tm1 = (dat$IYEAR - 1989)/(2018-1989)
+  
+y1 = scale(dat$PropObese)
+
+
 
 pdf("Google Drive File Stream/My Drive/Research/FDA_subgroup/doc/figures/datapattern.pdf",width = 5,height = 4)
 ggplot(data = dat, aes(x = IYEAR, y = PropObese, group = AGE, color = AGE)) +
@@ -40,5 +45,34 @@ ggplot(data = datpred) +
 dev.off()
 
 
+
+##### curve for eigenfunctions ###
+
+eigenmat = read.table("Google Drive File Stream/My Drive/Research/FDA_subgroup/result/eigenfunmat.txt")
+colnames(eigenmat) = c("value","time")
+
+pdf("Google Drive File Stream/My Drive/Research/FDA_subgroup/doc/figures/eigenfunctions.pdf",width = 7,height = 5)
+ggplot(data = eigenmat, aes(x = time, y = value)) + geom_line() + theme_bw()
+dev.off()
+
+
+
+#### correlation ####
+
+Bmtm = read.table("Google Drive File Stream/My Drive/Research/FDA_subgroup/result/Bmtm.txt")
+theta = read.table("Google Drive File Stream/My Drive/Research/FDA_subgroup/result/theta.txt")
+
+eigenfuntm = as.matrix(Bmtm) %*% theta[,1]
+covmat = corrmat = matrix(0, 28,28)
+
+for(i in 1:27)
+{
+  for(j in (i+1):28)
+    covmat[i,j] = eigenfuntm[i] * eigenfuntm[j]
+}
+
+covmat = covmat + t(covmat)
+diag(covmat) = eigenfuntm* eigenfuntm
+lamj = 0.032756463159806126
 
 

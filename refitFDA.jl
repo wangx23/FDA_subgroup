@@ -138,6 +138,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
     residf = zeros(n)
     meanfunest = zeros(ntotal)
+
     for i = 1:n
         indexi = indexy .== uindex[i]
         residf[i] = sum((y[indexi] - Bmi * alpm[:,group[i]] -
@@ -147,6 +148,19 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
     residsum = sum(residf)
 
+##### for eigenfunctions ###
+    grids = collect(range(0, length = 100 + 2, stop = 1))[2:end-1]
+    Bmgrids = orthogonalBsplines(grids, knots)
+
+
+    eigenfunmat = zeros(length(grids),P + 1)
+    for j=1:P
+        eigenfunmat[:,j] = Bmgrids * theta[:,j]
+    end
+
+    eigenfunmat[:,P+1] = grids
+
+
 
     flag = 0
     if niteration == maxiter
@@ -155,7 +169,7 @@ function refitFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector, group::V
 
     res = (index = uindex, lent = length(unique(tm)), sig2 = sig2, theta = theta,
     alpm = alpm,lamj = lamj, lamjold = lamjold, thetaold = thetaold, sig2old = sig2old,
-    meanfunest = meanfunest, normvalue = normvalue,
+    eigenfunmat = eigenfunmat, meanfunest = meanfunest, normvalue = normvalue,
     residsum = residsum, niteration = niteration, flag = flag)
 
     return res
