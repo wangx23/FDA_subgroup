@@ -82,6 +82,34 @@ dev.off()
 
 
 
+##### 100 rep #####
+
+resultsim3m10ncl = read.csv("resultsim3m10ncl100.csv",header = FALSE)
+round(colMeans(resultsim3m10ncl[,1:3]),2)
+round(apply(resultsim3m10ncl[,1:3],2,sd),3)
+
+
+round(colMeans(resultsim3m10ncl[,4:6]),2)
+round(apply(resultsim3m10ncl[,4:6],2,sd),2)
+colMeans(resultsim3m10ncl[,4:6]==3)
+
+mean(resultsim3m10ncl[,13])
+sd(resultsim3m10ncl[,13])
+
+resultsim3m20ncl = read.csv("resultsim3m20ncl100.csv",header = FALSE)
+
+round(colMeans(resultsim3m20ncl[,1:3]),2)
+round(apply(resultsim3m20ncl[,1:3],2,sd),3)
+
+
+round(colMeans(resultsim3m20ncl[,4:6]),2)
+round(apply(resultsim3m20ncl[,4:6],2,sd),2)
+colMeans(resultsim3m20ncl[,4:6]==3)
+
+mean(resultsim3m20ncl[,13])
+sd(resultsim3m20ncl[,13])
+
+
 ##### spatial result ####
 
 resultsim3s10 = read.csv("resultsim3s10.csv",header = FALSE)

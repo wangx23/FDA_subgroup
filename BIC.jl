@@ -1,4 +1,4 @@
-##### BIC #####
+##### Different BIC values #####
 include("getgroup.jl")
 
 ## For Ind case
