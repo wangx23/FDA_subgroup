@@ -7,9 +7,8 @@ using RCall
 
 m = 10
 ncl = 50
-# 0.04 [0.1,0.2]
-sig2 = 0.1
-lamj = [0.4,0.3]
+sig2 = 0.04
+lamj = [0.1,0.2]
 
 data3m10_v2 = zeros(1500,5,100)
 

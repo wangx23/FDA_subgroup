@@ -16,8 +16,8 @@ function standfun(x::Number, lower::Number, upper::Number)
 xnew = (x - lower)/(upper - lower)
 end
 
-
-datp1 = CSV.read("../doc/AggObese1990_2017.csv")
+using DataFrames;
+datp1 = CSV.File("../doc/AggObese1990_2017.csv")|> DataFrame!
 datp1 = datp1[datp1.AGE .!=80,:]
 
 lamv = collect(range(0,20,step=0.5))
