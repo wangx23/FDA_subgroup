@@ -1,4 +1,4 @@
-#### simulate for spatial with 20 replicates 
+#### simulate for spatial with 30 replicates 
 
 include("simdat3s_v3.jl")
 using RCall
@@ -47,3 +47,21 @@ end
 using RCall
 @rput data3s30_v3
 R"saveRDS(data3s30_v3, '../simdata/data3s30_v3.rds')"
+
+
+### m = 10 ###
+data3s10_v3 = zeros(1440,5,100)
+
+for i = 1:100
+    datai = simdat3s_v3(sig2, lamj, group, m = 10,seed = i)
+    data3s10_v3[:,1,i] = datai.group
+    data3s10_v3[:,2,i] = datai.ind
+    data3s10_v3[:,3,i] = datai.time
+    data3s10_v3[:,4,i] = datai.obs
+    data3s10_v3[:,5,i] = datai.meanfun
+end
+
+
+using RCall
+@rput data3s10_v3
+R"saveRDS(data3s10_v3, '../simdata/data3s10_v3.rds')"
