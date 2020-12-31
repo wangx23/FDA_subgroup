@@ -49,7 +49,7 @@ using RCall
 R"saveRDS(data3s30_v3, '../simdata/data3s30_v3.rds')"
 
 
-### m = 10 ###
+### m = 10 ###  not yet 
 data3s10_v3 = zeros(1440,5,100)
 
 for i = 1:100
