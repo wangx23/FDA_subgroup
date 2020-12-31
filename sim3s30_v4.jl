@@ -1,16 +1,17 @@
 
 ##### a function to simulate and return results ###
 using Distributed
+addprocs(23)
 @everywhere include("initial.jl")
 @everywhere include("scad.jl")
 @everywhere include("GrFDA.jl")
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
-@everywhere include("simdat3s_v3.jl")
+@everywhere include("simdat3s_v4.jl")
 @everywhere include("neigh.jl")
 @everywhere include("complam.jl")
 
-@everywhere function sim3s30_v3(seed::Int64)
+@everywhere function sim3s30_v4(seed::Int64)
 
     m = 30
     sig2 = 0.04
@@ -40,7 +41,7 @@ using Distributed
     group[group.==0] .= 3
 
 
-    data = simdat3s_v3(sig2, lamj, group, m = m,seed = seed)
+    data = simdat3s_v4(sig2, lamj, group, m = m,seed = seed)
 
     indexy = data.ind
     tm = data.time
@@ -133,6 +134,6 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s30_v3 = pmap(sim3s30_v3, 1:10)
-writedlm("../resultnew_v2/resultsim3s30_v3.csv", resultsim3s30_v3, ',')
+resultsim3s30_v4 = pmap(sim3s30_v4, 1:10)
+writedlm("../resultnew_v2/resultsim3s30_v4.csv", resultsim3s30_v4, ',')
 

@@ -1,16 +1,16 @@
-
 ##### a function to simulate and return results ###
+include("initial.jl")
+include("scad.jl")
+include("GrFDA.jl")
+include("refitFDA.jl")
+include("BIC.jl")
+include("simdat3s_v3.jl")
+include("neigh.jl")
+include("complam.jl")
 using Distributed
-@everywhere include("initial.jl")
-@everywhere include("scad.jl")
-@everywhere include("GrFDA.jl")
-@everywhere include("refitFDA.jl")
-@everywhere include("BIC.jl")
-@everywhere include("simdat3s_v3.jl")
-@everywhere include("neigh.jl")
-@everywhere include("complam.jl")
 
-@everywhere function sim3s30_v3(seed::Int64)
+
+function sim3s30_v3(seed::Int64)
 
     m = 30
     sig2 = 0.04
