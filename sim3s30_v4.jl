@@ -134,6 +134,6 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s30_v4 = pmap(sim3s30_v4, 1:10)
+resultsim3s30_v4 = pmap(sim3s30_v4, 1:100)
 writedlm("../resultnew_v2/resultsim3s30_v4.csv", resultsim3s30_v4, ',')
 
