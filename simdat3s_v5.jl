@@ -16,7 +16,7 @@ function m32(x::Number)
 end
 
 function m33(x::Number)
-    sqrt(2) * sin(4*pi*x)
+    sqrt(2) * sin(4*pi*x) + 0.25
 end
 
 

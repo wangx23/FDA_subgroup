@@ -1,4 +1,3 @@
-
 ##### a function to simulate and return results ###
 using Distributed
 addprocs(23)
@@ -7,13 +6,14 @@ addprocs(23)
 @everywhere include("GrFDA.jl")
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
-@everywhere include("simdat3s_v4.jl")
+@everywhere include("simdat3s_v5.jl")
 @everywhere include("neigh.jl")
 @everywhere include("complam.jl")
 
-@everywhere function sim3s30_v4(seed::Int64)
 
-    m = 30
+@everywhere function sim3s10_v5(seed::Int64)
+
+    m = 10
     sig2 = 0.04
     lamj = [0.1,0.2]
 
@@ -41,18 +41,17 @@ addprocs(23)
     group[group.==0] .= 3
 
 
-    data = simdat3s_v4(sig2, lamj, group, m = m,seed = seed)
+    data = simdat3s_v5(sig2, lamj, group, m = m,seed = seed)
 
     indexy = data.ind
     tm = data.time
     y = data.obs
-    knots = collect(range(0,length = 7, stop = 1))[2:6]
+    knots = collect(range(0,length = 5, stop = 1))[2:4]
 
     nobstotal = length(unique(indexy))
     wt = ones(convert(Int,nobstotal*(nobstotal)/2))
     group = unique(data[:,1:2])[:,1]
     meanfun = data.meanfun
-
 
     #betam0 = initial2(indexy, tm, y, knots, lam = 5)
     lamv = collect(range(0,20,step=0.5))
@@ -79,12 +78,12 @@ addprocs(23)
 
     res1 = GrFDA(indexy,tm,y,knots,index1[2],wt,betam0v5,
     lam = lamvec[index1[1]],
-    K0=12,maxiter = 500)
+    K0=12,maxiter = 1000)
     group1 = getgroup(res1.deltam,nobstotal)
     ng1 = size(unique(group1))[1]
     ari1 = randindex(group,group1)[1]
     norm1 = norm(res1.betaest - betaor)/sqrt(150)
-    rmse1 = norm(res1.meanfunest- meanfun)/sqrt(150*30)
+    rmse1 = norm(res1.meanfunest - meanfun)/sqrt(150*10)
     estpc1 = index1[2]
 
 
@@ -123,10 +122,10 @@ addprocs(23)
     ari2 = randindex(group,group2)[1]
     norm2 = norm(res2.betaest - betaor)/sqrt(150)
     estpc2 = index2[2]
-    rmse2 = norm(res2.meanfunest - meanfun)/sqrt(150*30)
+    rmse2 = norm(res2.meanfunest - meanfun)/sqrt(150*10)
 
     resvec = [ari1, ari2, ng1, ng2,
-    norm1, norm2,rmse1, rmse2,
+    norm1, norm2, rmse1, rmse2,
     estpc1, estpc2]
     return resvec
 end
@@ -134,6 +133,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s30_v4 = pmap(sim3s30_v4, 1:100)
-writedlm("../resultnew_v2/resultsim3s30_v4.csv", resultsim3s30_v4, ',')
-
+resultsim3s10_v5 = pmap(sim3s10_v5, 1:100)
+writedlm("../resultnew_v2/resultsim3s10_v5.csv", resultsim3s10_v5, ',')
