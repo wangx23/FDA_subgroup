@@ -11,7 +11,7 @@ addprocs(23)
 @everywhere include("complam.jl")
 
 
-@everywhere function sim3s10_v6(seed::Int64)
+@everywhere function sim3s10_v7(seed::Int64)
 
     m = 10
     sig2 = 0.04

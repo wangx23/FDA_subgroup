@@ -11,7 +11,7 @@ addprocs(23)
 @everywhere include("neigh.jl")
 @everywhere include("complam.jl")
 
-@everywhere function sim3s30_v6(seed::Int64)
+@everywhere function sim3s30_v7(seed::Int64)
 
     m = 30
     sig2 = 0.04

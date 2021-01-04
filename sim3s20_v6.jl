@@ -12,7 +12,7 @@ addprocs(23)
 
 
 
-@everywhere function sim3s20_v6(seed::Int64)
+@everywhere function sim3s20_v7(seed::Int64)
 
     m = 20
     sig2 = 0.04
