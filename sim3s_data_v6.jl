@@ -32,21 +32,21 @@ group[group.==0] .= 3
 
 
 
-data3s30_v6 = zeros(4320,5,100)
+data3s30_v7 = zeros(4320,5,100)
 
 for i = 1:100
     datai = simdat3s_v6(sig2, lamj, group, m = m,seed = i)
-    data3s30_v6[:,1,i] = datai.group
-    data3s30_v6[:,2,i] = datai.ind
-    data3s30_v6[:,3,i] = datai.time
-    data3s30_v6[:,4,i] = datai.obs
-    data3s30_v6[:,5,i] = datai.meanfun
+    data3s30_v7[:,1,i] = datai.group
+    data3s30_v7[:,2,i] = datai.ind
+    data3s30_v7[:,3,i] = datai.time
+    data3s30_v7[:,4,i] = datai.obs
+    data3s30_v7[:,5,i] = datai.meanfun
 end
 
 
 using RCall
-@rput data3s30_v6
-R"saveRDS(data3s30_v6, '../simdata/data3s30_v6.rds')"
+@rput data3s30_v7
+R"saveRDS(data3s30_v7, '../simdata/data3s30_v7.rds')"
 
 
 
@@ -79,20 +79,20 @@ group[((gridm[:,2] .>=7) .& (group .==0))[:,1]] .= 2
 group[group.==0] .= 3
 
 
-data3s20_v6 = zeros(2880,5,100)
+data3s20_v7 = zeros(2880,5,100)
 
 for i = 1:100
     datai = simdat3s_v6(sig2, lamj, group, m = m,seed = i)
-    data3s20_v6[:,1,i] = datai.group
-    data3s20_v6[:,2,i] = datai.ind
-    data3s20_v6[:,3,i] = datai.time
-    data3s20_v6[:,4,i] = datai.obs
-    data3s20_v6[:,5,i] = datai.meanfun
+    data3s20_v7[:,1,i] = datai.group
+    data3s20_v7[:,2,i] = datai.ind
+    data3s20_v7[:,3,i] = datai.time
+    data3s20_v7[:,4,i] = datai.obs
+    data3s20_v7[:,5,i] = datai.meanfun
 end
 
 
-@rput data3s20_v6
-R"saveRDS(data3s20_v6, '../simdata/data3s20_v6.rds')"
+@rput data3s20_v7
+R"saveRDS(data3s20_v7, '../simdata/data3s20_v7.rds')"
 
 
 
@@ -125,18 +125,18 @@ group[((gridm[:,2] .>=7) .& (group .==0))[:,1]] .= 2
 group[group.==0] .= 3
 
 
-data3s10_v6 = zeros(1440,5,100)
+data3s10_v7 = zeros(1440,5,100)
 
 for i = 1:100
     datai = simdat3s_v6(sig2, lamj, group, m = m,seed = i)
-    data3s10_v6[:,1,i] = datai.group
-    data3s10_v6[:,2,i] = datai.ind
-    data3s10_v6[:,3,i] = datai.time
-    data3s10_v6[:,4,i] = datai.obs
-    data3s10_v6[:,5,i] = datai.meanfun
+    data3s10_v7[:,1,i] = datai.group
+    data3s10_v7[:,2,i] = datai.ind
+    data3s10_v7[:,3,i] = datai.time
+    data3s10_v7[:,4,i] = datai.obs
+    data3s10_v7[:,5,i] = datai.meanfun
 end
 
 
-@rput data3s10_v6
-R"saveRDS(data3s10_v6, '../simdata/data3s10_v6.rds')"
+@rput data3s10_v7
+R"saveRDS(data3s10_v7, '../simdata/data3s10_v7.rds')"
 

@@ -16,10 +16,10 @@ function m32(x::Number)
 end
 
 function m33(x::Number)
-    sqrt(2) * sin(4*pi*x) + 0.4
+    sqrt(2) * sin(4*pi*x) + 0.3
 end
 
-
+####v6 0.4 v7 0.3
 
 #x0 = collect(range(0,1,length = 100))
 #plot(1:m, mean1)
