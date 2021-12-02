@@ -143,7 +143,7 @@ round(apply(resultsim3s10[,9:10],2,sd),3)
 mean(JS_s10[,2])
 sd(JS_s10[,2])
 
-rmse3s10 = data.frame(model = c(rep("IND",100), rep("FDA",100), rep("JS",100)), 
+rmse3s10 = data.frame(model = c(rep("equal",100), rep("sp",100), rep("JS",100)), 
                       RMSE = c(as.matrix(resultsim3s10[,c(7,8)]),JS_s10[,5]))
 
 plots10 = qplot(x = model, y = RMSE, data = rmse3s10, main = "m=10") + 
@@ -167,7 +167,7 @@ round(apply(resultsim3s20[,9:10],2,sd),3)
 mean(JS_s20[,2])
 sd(JS_s20[,2])
 
-rmse3s20 = data.frame(model = c(rep("IND",100), rep("FDA",100), rep("JS",100)), 
+rmse3s20 = data.frame(model = c(rep("equal",100), rep("sp",100), rep("JS",100)), 
                       RMSE = c(as.matrix(resultsim3s20[,c(7,8)]),JS_s20[,5]))
 
 plots20 = qplot(x = model, y = RMSE, data = rmse3s20, main = "m=10") + 
@@ -191,8 +191,8 @@ round(apply(resultsim3s30[,9:10],2,sd),3)
 mean(JS_s30[,2])
 sd(JS_s30[,2])
 
-rmse3s30 = data.frame(model = c(rep("IND",100), rep("FDA",100), rep("JS",100)), 
-                      RMSE = c(as.matrix(resultsim3s30[,c(7,8)]), JS_m30[,5]))
+rmse3s30 = data.frame(model = c(rep("equal",100), rep("sp",100), rep("JS",100)), 
+                      RMSE = c(as.matrix(resultsim3s30[,c(7,8)]), JS_s30[,5]))
 
 plots30 = qplot(x = model, y = RMSE, data = rmse3s30, main = "m=10") + 
   geom_boxplot() + theme_bw() +  theme(plot.title = element_text(hjust = 0.5))
