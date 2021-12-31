@@ -1,3 +1,4 @@
+
 ##### a function to simulate and return results ###
 using Distributed
 addprocs(48)
@@ -6,43 +7,32 @@ addprocs(48)
 @everywhere include("GrFDA.jl")
 @everywhere include("refitFDA.jl")
 @everywhere include("BIC.jl")
-@everywhere include("simdat3s.jl")
+@everywhere include("simdat4s_v2.jl")
 @everywhere include("neigh.jl")
 @everywhere include("complam.jl")
 
+@everywhere function sim4s20_v2(seed::Int64)
 
-
-@everywhere function sim3s30(seed::Int64)
-
-    m = 30
+    m = 20
     sig2 = 0.04
     lamj = [0.1,0.2]
 
-    ngrid = 12
+    ngrid = 14
     n = ngrid * ngrid
     gridm = zeros(ngrid*ngrid, 2)
     gridm[:,1] = repeat(1:ngrid, inner= ngrid)
     gridm[:,2] = repeat(collect(range(ngrid, 1, step = -1)),outer = ngrid)
 
-    function f1(x::Vector)
-        0.7*x[1] + x[2] - 13
-    end
-
-    function f2(x::Vector)
-        0.75*x[1] - x[2]
-    end
-
-    value1 = mapslices(f1,gridm,dims = 2)
-    value2 = mapslices(f2,gridm,dims = 2)
 
     group = zeros(Int64,n)
 
-    group[((value1.<0) .& (value2 .<=0) .& (gridm[:,1] .<7))[:,1]] .= 1
-    group[((gridm[:,2] .>=7) .& (group .==0))[:,1]] .= 2
-    group[group.==0] .= 3
+    group[(gridm[:,1] .<= 7) .& (gridm[:,2].>7)] .= 1
+    group[(gridm[:,1] .<= 7) .& (gridm[:,2].<=7)] .= 2
+    group[(gridm[:,1] .> 7) .& (gridm[:,2].>7)] .= 3
+    group[(gridm[:,1] .>7) .& (gridm[:,2].<=7)] .= 4
 
 
-    data = simdat3s(sig2, lamj, group, m = m,seed = seed)
+    data = simdat4s_v2(sig2, lamj, group, m = m,seed = seed)
 
     indexy = data.ind
     tm = data.time
@@ -90,15 +80,18 @@ addprocs(48)
 
 
     ### spatial weights
-    Cmat = cmatfun(12,12)
-    ordermat = zeros(Int64, 12*12 , 12*12)
-    for i = 1:144
+    Cmat = cmatfun(14,14)
+    ordermat = zeros(Int64, 14*14 , 14*14)
+    for i = 1:(14*14)
         ordermat[:,i] = calorder(i,Cmat)
     end
 
 
     alp2 = [0.1, 0.5, 1]
     nalp = length(alp2)
+
+    lamvec = collect(range(0.2,0.8,length= 41))
+    nlam = length(lamvec)
 
 
     BICvec2 = zeros(nlam,3,nalp)
@@ -135,5 +128,6 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-resultsim3s30 = pmap(sim3s30, 1:100)
-writedlm("../resultnew_v4/resultsim3s30.csv", resultsim3s30, ',')
+resultsim4s20_v2 = pmap(sim4s20_v2, 1:100)
+writedlm("../resultnew_v4/resultsim4s20_v2.csv", resultsim4s20_v2, ',')
+

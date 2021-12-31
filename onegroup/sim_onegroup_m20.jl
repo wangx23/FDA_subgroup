@@ -72,4 +72,4 @@ end
 
 using DelimitedFiles
 result_onegroup_m20 = pmap(sim_onegroup_m20, 1:100)
-writedlm("../../resultnew_v2/onegroup/result_onegroup_m10.csv", result_onegroup_m10, ',')
+writedlm("../../resultnew_v2/onegroup/result_onegroup_m20.csv", result_onegroup_m20, ',')

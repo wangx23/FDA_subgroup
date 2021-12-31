@@ -1,6 +1,6 @@
 ##### a function to simulate and return results ###
 using Distributed
-addprocs(2)
+addprocs(28)
 @everywhere include("../initial.jl")
 @everywhere include("../scad.jl")
 @everywhere include("../GrFDA.jl")
@@ -72,5 +72,5 @@ end
 #res1 = sim1(1)
 
 using DelimitedFiles
-result_onegroup_m30 = pmap(sim_onegroup_m30, 1:4)
-writedlm("../../resultnew_v2/onegroup/result_onegroup_m10.csv", result_onegroup_m10, ',')
+result_onegroup_m30 = pmap(sim_onegroup_m30, 1:100)
+writedlm("../../resultnew_v2/onegroup/result_onegroup_m30.csv", result_onegroup_m30, ',')

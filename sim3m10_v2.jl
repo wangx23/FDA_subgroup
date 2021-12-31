@@ -1,5 +1,7 @@
 ##### a function to simulate and return results ###
 #### use BICem4 ####
+using Distributed
+addprocs(48)
 @everywhere include("initial.jl")
 @everywhere include("scad.jl")
 @everywhere include("GrInd.jl")
@@ -11,7 +13,7 @@
 @everywhere include("simdat3.jl")
 @everywhere include("complam.jl")
 @everywhere using Dates
-using Distributed
+
 
 
 @everywhere function sim3m10(seed::Int64)
@@ -151,4 +153,4 @@ end
 
 using DelimitedFiles
 resultsim3m10 = pmap(sim3m10, 1:100)
-writedlm("resultnew_v2/resultsim3m10.csv", resultsim3m10, ',')
+writedlm("../resultnew_v4/resultsim3m10.csv", resultsim3m10, ',')

@@ -1,4 +1,6 @@
 ##### a function to simulate and return results ###
+using Distributed
+addprocs(48)
 @everywhere include("initial.jl")
 @everywhere include("scad.jl")
 @everywhere include("GrInd.jl")
@@ -10,7 +12,7 @@
 @everywhere include("simdat3.jl")
 @everywhere include("complam.jl")
 @everywhere using Dates
-using Distributed
+
 
 
 @everywhere function sim3m20(seed::Int64)
@@ -150,4 +152,4 @@ end
 
 using DelimitedFiles
 resultsim3m20 = pmap(sim3m20, 1:100)
-writedlm("resultnew_v2/resultsim3m20.csv", resultsim3m20, ',')
+writedlm("../resultnew_v4/resultsim3m20.csv", resultsim3m20, ',')

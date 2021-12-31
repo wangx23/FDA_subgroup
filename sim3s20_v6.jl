@@ -1,6 +1,6 @@
 ##### a function to simulate and return results ###
 using Distributed
-addprocs(23)
+addprocs(48)
 @everywhere include("initial.jl")
 @everywhere include("scad.jl")
 @everywhere include("GrFDA.jl")
@@ -136,4 +136,4 @@ end
 
 using DelimitedFiles
 resultsim3s20_v7 = pmap(sim3s20_v7, 1:100)
-writedlm("../resultnew_v2/resultsim3s20_v7.csv", resultsim3s20_v7, ',')
+writedlm("../resultnew_v4/resultsim3s20_v7.csv", resultsim3s20_v7, ',')

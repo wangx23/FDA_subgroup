@@ -39,7 +39,7 @@ indexy = indexy1
 lamvec = collect(range(0.15,0.6,step = 0.01))
 alpvec = [0,0.25,0.5,0.75,1]
 
-knots1 = collect(range(0,length = 5, stop = 1))[2:4]
+knots1 = collect(range(0,length = 6, stop = 1))[2:5]
 betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 nlam = length(lamvec)
 
@@ -81,28 +81,43 @@ function estfun(nknots, alpvec, lamvec, lamv, indexy, tm, y, ordervec)
     #### considering weights#######
     nalp = length(alpvec)
 
+    lamvec2 = collect(range(0.1,1,length=51))
+
+    nlam2 = length(lamvec2)
     groupw = zeros(Int,nage,nalp)
-    BICarray = zeros(nlam, 3, nalp)
+    BICarray = zeros(nlam2, 3, nalp)
+
+    lam2 = zeros(nlam2,nalp)
+    lam2[:,1] = lamvec2
+    #lam2[:,2] = collect(range(2,20,length=60))
+    #lam2[:,3] = collect(range(2,20,length=60))
+
+    lam2[:,2] = lamvec2
+    lam2[:,3] = lamvec2
+    lam2[:,4] = lamvec2
+    lam2[:,5] = lamvec2
+
+    grouparray = zeros(nage, nlam2, 3, nalp)
 
     for k in 1:nalp
         wtk =  exp.(alpvec[k].*(1 .- ordervec))
-        for l in 1:nlam
-            for P = 1:3
-                resl = GrFDA(indexy,tm,y,knots1,P,wtk,betam01,lam = lamvec[l],
+        for P = 1:3
+            for l in 1:nlam2
+                resl = GrFDA(indexy,tm,y,knots1,P,wtk,betam01,lam = lam2[l,k],
                 K0 = 8)
                 BICarray[l,P,k] = BICem4(resl)
                 groupl = getgroup(resl.deltam,nage)
-                resr = refitFDA(indexy,tm,y,knots1,groupl,P, betam01)
+                grouparray[:,l,P,k] = groupl
             end
         end
         indk = argmin(BICarray[:,:,k])
-        resk = GrFDA(indexy,tm,y,knots1,indk[2],wtk,betam01,lam = lamvec[indk[1]],
+        resk = GrFDA(indexy,tm,y,knots1,indk[2],wtk,betam01,lam = lam2[indk[1],k],
         K0 = 8)
         groupk = getgroup(resk.deltam,nage)
         groupw[:,k] = groupk
     end
 
-    res = (BICarray = BICarray, groupw = groupw,
+    res = (BICarray = BICarray, groupw = groupw, grouparray = grouparray,
     BICvec0 = BICvec0, group0 = group0)
     return res
 
@@ -133,12 +148,9 @@ estknots5 = estfun(5, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
 
 argmin(estknots5.BICarray)
 minimum(estknots5.BICarray)
-freqtable(estknots5.groupw[:,5])
+freqtable(estknots5.groupw[:,3])
 
 freqtable(estknots5.group0)
-
-
-
 
 
 
@@ -148,9 +160,9 @@ betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 nlam = length(lamvec)
 
 
-refit52 = refitFDA(indexy1,tm1, y1, knots1, estknots5.groupw[:,5], 1,betam02)
+refit52 = refitFDA(indexy1,tm1, y1, knots1, estknots5.groupw[:,3], 1,betam01)
 
-meanfunest52 = refit52.meanfunest.*std(datp1.PropObese)
+meanfunest52 = refit52.meanfunest.*std(datp1.PropObese) .+ mean(datp1.PropObese)
 
 refit52.theta
 refit52.eigenfunmat
@@ -161,37 +173,26 @@ using JLD
 using JLD2, FileIO
 #save("../resultnew_v42/refit52.jld2", refit52)
 
-save("../resultnew_v42/sig2lam2.jld", "lamj", refit52.lamj, "sig2",refit52.sig2)
+save("../app_v3/sig2lam2.jld", "lamj", refit52.lamj, "sig2",refit52.sig2)
 
 
 using DelimitedFiles
 
-writedlm("../resultnew_v42/meanfunest52.txt",meanfunest52)
-writedlm("../resultnew_v42/groupest.txt",estknots5.groupw[:,5])
-writedlm("../resultnew_v42/eigenfunmat.txt", refit52.eigenfunmat)
+writedlm("../app_v3/meanfunest5.txt",meanfunest52)
+writedlm("../app_v3/groupest5.txt",estknots5.groupw[:,5])
+writedlm("../app_v3/eigenfunmat5.txt", refit52.eigenfunmat)
 
 Bmtm = orthogonalBsplines(unique(tm1), knots1)
-writedlm("../resultnew_v42/Bmtm.txt", Bmtm)
-writedlm("../resultnew_v42/theta.txt", refit52.theta)
+writedlm("../app_v3/Bmtm5.txt", Bmtm)
+writedlm("../app_v3/theta5.txt", refit52.theta)
 
-
-##########
-
-estknots4 = estfun(4, alpvec, lamvec, lamv, indexy1, tm1,
-y1, ordervec)
-
-argmin(estknots4.BICarray)
-minimum(estknots4.BICarray)
-freqtable(estknots4.groupw[:,5])
-
-freqtable(estknots4.group0)
 
 #### 
 estknots6 = estfun(6, alpvec, lamvec, lamv, indexy1, tm1, y1, ordervec)
 
 argmin(estknots6.BICarray)
 minimum(estknots6.BICarray)
-freqtable(estknots6.groupw[:,4])
+freqtable(estknots6.groupw[:,2])
 
 
 knots1 = collect(range(0,length = 6, stop = 1))[2:5]
@@ -199,8 +200,8 @@ betam01 = initial5(indexy1, tm1, y1, knots1, lamv = lamv)
 nlam = length(lamvec)
 
 
-refit6 = refitFDA(indexy1,tm1, y1, knots1, estknots6.groupw[:,4], 1,betam01)
-meanfunest6 = refit6.meanfunest .* std(datp1.PropObese)
+refit6 = refitFDA(indexy1,tm1, y1, knots1, estknots6.groupw[:,2], 1,betam01)
+meanfunest6 = refit6.meanfunest .* std(datp1.PropObese) .+ mean(datp1.PropObese)
 
 
 refit6.theta
@@ -209,10 +210,10 @@ refit6.sig2
 refit6.lamj
 
 
-writedlm("../resultnew_v42/meanfunest6.txt",meanfunest6)
-writedlm("../resultnew_v42/groupest6.txt",estknots6.groupw[:,4])
-writedlm("../resultnew_v42/eigenfunmat6.txt", refit6.eigenfunmat)
-writedlm("../resultnew_v42/theta6.txt", refit6.theta)
+writedlm("../app_v3/meanfunest6.txt",meanfunest6)
+writedlm("../app_v3/groupest6.txt",estknots6.groupw[:,2])
+writedlm("../app_v3/eigenfunmat6.txt", refit6.eigenfunmat)
+writedlm("../app_v3/theta6.txt", refit6.theta)
 
 
 ###### another BIC #####

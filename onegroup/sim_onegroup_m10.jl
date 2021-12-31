@@ -1,6 +1,6 @@
 ##### a function to simulate and return results ###
 using Distributed
-addprocs(2)
+addprocs(28)
 @everywhere include("../initial.jl")
 @everywhere include("../scad.jl")
 @everywhere include("../GrFDA.jl")

@@ -18,7 +18,7 @@ lamj = [0.1,0.2]
 
 n = 150
 
-seed = 22
+seed = 33
 data = sim_datonegroup(sig2, n, lamj, m , seed )
 
 indexy = data.ind
@@ -66,4 +66,4 @@ ri1 = randindex(group,group1)[2]
 estpc1 = index1[2]
 
 resvec = [ng1, ari1, ri1, estpc1]
-
+freqtable(group1)

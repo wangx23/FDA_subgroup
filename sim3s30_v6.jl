@@ -1,7 +1,7 @@
 
 ##### a function to simulate and return results ###
 using Distributed
-addprocs(23)
+addprocs(48)
 @everywhere include("initial.jl")
 @everywhere include("scad.jl")
 @everywhere include("GrFDA.jl")
@@ -61,7 +61,7 @@ addprocs(23)
     resor = refitFDA(indexy,tm,y,knots,group,2, betam0v5)
     betaor = transpose(resor.alpm[:,group])
 
-    lamvec = collect(range(0.2,0.5,step = 0.01))
+    lamvec = collect(range(0.2,0.7,step = 0.01))
     nlam = length(lamvec)
 
 
@@ -135,5 +135,5 @@ end
 
 using DelimitedFiles
 resultsim3s30_v7 = pmap(sim3s30_v7, 1:100)
-writedlm("../resultnew_v2/resultsim3s30_v7.csv", resultsim3s30_v7, ',')
+writedlm("../resultnew_v4/resultsim3s30_v7.csv", resultsim3s30_v7, ',')
 

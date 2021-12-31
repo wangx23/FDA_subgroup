@@ -52,6 +52,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     lamj = resf.lamj
     theta = resf.theta
     sig2 = resf.sig2
+    sig20 = sig2
 
 
     ## initial values
@@ -70,14 +71,14 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
     residv = zeros(n)
     #Vii = zeros(P,P)
 
-    XtXinv = inverseb(indexy,Bmt,nu*lent, p, n, np)
+    #XtXinv = inverseb(indexy,Bmt,nu*lent*sig2, p, n, np)
     Xty = zeros(np)
     for i = 1:n
         indexi = indexy.==uindex[i]
         Xty[(i-1)*p + 1:(i*p)] = transpose(Bmi) * y[indexi]
     end
 
-    b1 = XtXinv * Xty
+    #b1 = XtXinv * Xty
     Btheta = zeros(np)
     normbd = zeros(2)
 
@@ -149,8 +150,12 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
             Btheta[(i-1)*p + 1:(i*p)] = transpose(Bmi) * Bmi *theta * mhat[i,:]
         end
 
+       # XtXinv = inverseb(indexy,Bmt,nu*lent*sig2, p, n, np)
+        XtXinv = inverseb(indexy,Bmt,nu*lent*sig2/sig20, p, n, np)
+        b1 = XtXinv * Xty
+
         temp = reshape((deltamold - 1/nu * vm)*Dmat, np,1)
-        betanew = b1 - XtXinv * Btheta + nu*lent* XtXinv * temp
+        betanew = b1 - XtXinv * Btheta + nu*lent*sig2/sig20* XtXinv * temp
         betam = transpose(reshape(betanew, p, n))
         betadiff = transpose(Dmat * betam)
 
@@ -219,7 +224,7 @@ function GrFDA(indexy::Vector, tm::Vector, y::Vector, knots::Vector,
 
     res = (index = uindex, beta = betam, betaest = betaest, betaavg = betaavg,
     groupest = groupest, sig2 = sig2, theta = theta, meanfunest = meanfunest,
-    lamj = lamj, lamjold = lamjold,
+    lamj = lamj, lamjold = lamjold, sig20 = sig20,
     residsum = residsum, lent = lent, deltam = deltam, rvalue = rvalue, svalue = svalue,
     tolpri = tolpri, toldual = toldual, niteration = niteration, flag = flag)
 
